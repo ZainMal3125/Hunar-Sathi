@@ -2,13 +2,21 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Edit3,
+  EyeOff,
   Loader2,
   MapPin,
   RefreshCw,
   RotateCcw,
   Store,
+  Trash2,
+  X,
 } from 'lucide-react';
-import { listPublicShopsFromFirestore } from '../firebase';
+import {
+  deleteShopFromFirestore,
+  listPublicShopsFromFirestore,
+  updateShopVisibilityInFirestore,
+} from '../firebase';
 import { SkillOptionId, TranslationContent } from '../i18n/translations';
 import {
   DirectorySkillFilterId,
@@ -19,17 +27,27 @@ import {
   SAMPLE_SHOPS,
 } from '../utils/shopDirectory';
 import { SKILL_OPTION_IDS } from '../utils/skillForm';
-import { ShopRecord } from '../utils/shopManager';
+import {
+  isOwnerOfShop,
+  ShopRecord,
+  UserProfile,
+} from '../utils/shopManager';
 
 interface ShopDirectoryScreenProps {
   content: TranslationContent;
+  userProfile: UserProfile | null;
   onSelectShop: (shopId: string) => void;
+  onEditMyShop: () => void;
+  onShopChanged: (shop: ShopRecord | null) => void;
   onBackToApp: () => void;
 }
 
 export function ShopDirectoryScreen({
   content,
+  userProfile,
   onSelectShop,
+  onEditMyShop,
+  onShopChanged,
   onBackToApp,
 }: ShopDirectoryScreenProps) {
   const [shops, setShops] = useState<ShopRecord[]>(SAMPLE_SHOPS);
@@ -37,8 +55,11 @@ export function ShopDirectoryScreen({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [skillFilter, setSkillFilter] = useState<DirectorySkillFilterId>('all');
   const [cityFilter, setCityFilter] = useState<string>('all');
+  const [mutatingShopId, setMutatingShopId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const dirLabels = content.directory;
+  const myShopLabels = content.myShop;
   const skillOptions = content.skillInput.skillOptions;
   const isRtl = content.dir === 'rtl';
 
@@ -69,6 +90,33 @@ export function ShopDirectoryScreen({
   const handleResetFilters = () => {
     setSkillFilter('all');
     setCityFilter('all');
+  };
+
+  const handleHideOwnedShop = async (shop: ShopRecord) => {
+    setMutatingShopId(shop.id);
+    try {
+      await updateShopVisibilityInFirestore(shop.id, true);
+      setShops((prev) => prev.filter((s) => s.id !== shop.id));
+      onShopChanged({ ...shop, isHidden: true, visible: false });
+    } catch {
+      setLoadError(content.publicShop.errorActionFailed);
+    } finally {
+      setMutatingShopId(null);
+    }
+  };
+
+  const handleDeleteOwnedShop = async (shopId: string) => {
+    setMutatingShopId(shopId);
+    try {
+      await deleteShopFromFirestore(shopId);
+      setShops((prev) => prev.filter((s) => s.id !== shopId));
+      setConfirmDeleteId(null);
+      onShopChanged(null);
+    } catch {
+      setLoadError(content.publicShop.errorActionFailed);
+    } finally {
+      setMutatingShopId(null);
+    }
   };
 
   return (
@@ -234,12 +282,14 @@ export function ShopDirectoryScreen({
         >
           {filteredShops.map((shop) => {
             const sample = isSampleShop(shop);
+            const isOwnedByCurrentUser = isOwnerOfShop(shop, userProfile?.uid);
             const priceRange = formatShopPriceRange(
               shop.products,
               dirLabels.priceNotSet
             );
             const coverPhoto =
               shop.photos && shop.photos.length > 0 ? shop.photos[0] : null;
+            const isBusy = mutatingShopId === shop.id;
 
             return (
               <article
@@ -283,6 +333,15 @@ export function ShopDirectoryScreen({
                               ? dirLabels.sampleDataBadgeUrdu
                               : dirLabels.sampleDataBadgeEnglish}
                           </span>
+                        </div>
+                      )}
+
+                      {isOwnedByCurrentUser && (
+                        <div
+                          data-testid={`owner-shop-badge-${shop.id}`}
+                          className="text-sm font-bold text-[var(--color-primary)]"
+                        >
+                          {dirLabels.ownerBadgeLabel}
                         </div>
                       )}
 
@@ -343,6 +402,86 @@ export function ShopDirectoryScreen({
                     </div>
                   </div>
                 </button>
+
+                {/* Edit / Hide / Delete controls ONLY on the shop that belongs to the logged-in user */}
+                {isOwnedByCurrentUser && (
+                  <div
+                    data-testid={`directory-owner-controls-${shop.id}`}
+                    className="flex flex-col gap-3 border-t border-[var(--color-border)] bg-[var(--color-canvas)]/70 px-6 py-4"
+                  >
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        id={`dir-edit-shop-${shop.id}`}
+                        data-testid={`dir-edit-shop-${shop.id}`}
+                        disabled={isBusy}
+                        onClick={onEditMyShop}
+                        className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-border)]"
+                      >
+                        <Edit3 aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        <span>{dirLabels.editShopButton}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        id={`dir-hide-shop-${shop.id}`}
+                        data-testid={`dir-hide-shop-${shop.id}`}
+                        disabled={isBusy}
+                        onClick={() => handleHideOwnedShop(shop)}
+                        className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold text-[var(--color-text)] hover:bg-[var(--color-border)]"
+                      >
+                        <EyeOff aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        <span>{dirLabels.hideShopButton}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        id={`dir-delete-shop-${shop.id}`}
+                        data-testid={`dir-delete-shop-${shop.id}`}
+                        disabled={isBusy}
+                        onClick={() => setConfirmDeleteId(shop.id)}
+                        className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-[var(--color-primary)]/40 bg-[var(--color-surface)] px-3 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+                      >
+                        <Trash2 aria-hidden="true" className="h-4 w-4 shrink-0" />
+                        <span>{dirLabels.deleteShopButton}</span>
+                      </button>
+                    </div>
+
+                    {confirmDeleteId === shop.id && (
+                      <div
+                        role="alertdialog"
+                        data-testid={`dir-delete-confirm-${shop.id}`}
+                        className="flex flex-col gap-2.5 rounded-2xl border-2 border-[var(--color-primary)] bg-[var(--color-surface)] p-4"
+                      >
+                        <p className="text-sm font-bold text-[var(--color-primary)]">
+                          {myShopLabels.deleteConfirmTitle}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            id={`dir-confirm-delete-${shop.id}`}
+                            data-testid={`dir-confirm-delete-${shop.id}`}
+                            disabled={isBusy}
+                            onClick={() => handleDeleteOwnedShop(shop.id)}
+                            className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-xs font-bold text-white"
+                          >
+                            <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                            <span>{myShopLabels.confirmDeleteButton}</span>
+                          </button>
+                          <button
+                            type="button"
+                            id={`dir-cancel-delete-${shop.id}`}
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-3 py-2 text-xs font-bold text-[var(--color-text)]"
+                          >
+                            <X aria-hidden="true" className="h-3.5 w-3.5" />
+                            <span>{myShopLabels.cancelDeleteButton}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </article>
             );
           })}

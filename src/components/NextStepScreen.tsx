@@ -24,22 +24,37 @@ import {
   PriceBreakdown,
   PriceCalculatorInputs,
 } from '../utils/priceCalculator';
-import { ShopProductItem, ShopRecord } from '../utils/shopManager';
+import {
+  ShopProductItem,
+  ShopRecord,
+  UserProfile,
+} from '../utils/shopManager';
 import {
   getResolvedSkillDisplay,
   SkillFormState,
 } from '../utils/skillForm';
 import { FirstWeekPlanSection } from './FirstWeekPlanSection';
 import { ProductPriceCalculator } from './ProductPriceCalculator';
-import { SaveShopSection } from './SaveShopSection';
+import { DraftSaveShopFields, SaveShopSection } from './SaveShopSection';
+
+export interface SavedProductPriceState {
+  breakdown: PriceBreakdown;
+  inputs: PriceCalculatorInputs;
+}
 
 interface NextStepScreenProps {
   content: TranslationContent;
+  userProfile: UserProfile | null;
   formState: SkillFormState;
   isLoading: boolean;
   error: string | null;
   result: BusinessGuideResponse | null;
   savedShop: ShopRecord | null;
+  savedPrices: Record<number, SavedProductPriceState>;
+  onSavedPricesChange: (next: Record<number, SavedProductPriceState>) => void;
+  draftSaveShop: DraftSaveShopFields;
+  onDraftSaveShopChange: (next: DraftSaveShopFields) => void;
+  onRequireAuthForSave: () => void;
   onShopSaved: (shop: ShopRecord | null) => void;
   onOpenPublicShop: (shopId: string) => void;
   onRetry: () => void;
@@ -48,18 +63,19 @@ interface NextStepScreenProps {
   onBackToHome: () => void;
 }
 
-interface SavedProductPriceState {
-  breakdown: PriceBreakdown;
-  inputs: PriceCalculatorInputs;
-}
-
 export function NextStepScreen({
   content,
+  userProfile,
   formState,
   isLoading,
   error,
   result,
   savedShop,
+  savedPrices,
+  onSavedPricesChange,
+  draftSaveShop,
+  onDraftSaveShopChange,
+  onRequireAuthForSave,
   onShopSaved,
   onOpenPublicShop,
   onRetry,
@@ -68,9 +84,6 @@ export function NextStepScreen({
   onBackToHome,
 }: NextStepScreenProps) {
   const [copied, setCopied] = useState(false);
-  const [savedPrices, setSavedPrices] = useState<
-    Record<number, SavedProductPriceState>
-  >({});
   const labels = content.nextStep;
   const flowLabels = content.createFlow;
   const isRtl = content.dir === 'rtl';
@@ -97,10 +110,10 @@ export function NextStepScreen({
     breakdown: PriceBreakdown,
     inputs: PriceCalculatorInputs
   ) => {
-    setSavedPrices((prev) => ({
-      ...prev,
+    onSavedPricesChange({
+      ...savedPrices,
       [productIndex]: { breakdown, inputs },
-    }));
+    });
   };
 
   const handleCopyWhatsApp = async (textToCopy: string) => {
@@ -506,11 +519,15 @@ export function NextStepScreen({
           {/* 6. Save Shop to Firestore Section */}
           <SaveShopSection
             content={content}
+            userProfile={userProfile}
             skill={resolvedSkill}
             city={formState.city.trim()}
             products={shopProducts}
             photos={allPhotoUrls}
             savedShop={savedShop}
+            draftFields={draftSaveShop}
+            onDraftChange={onDraftSaveShopChange}
+            onRequireAuth={onRequireAuthForSave}
             onShopSaved={onShopSaved}
             onOpenPublicShop={onOpenPublicShop}
           />
@@ -527,7 +544,7 @@ export function NextStepScreen({
             </p>
           </div>
 
-          {/* 6. Start Over Button */}
+          {/* 8. Start Over Button */}
           <div className="pt-1">
             <button
               type="button"

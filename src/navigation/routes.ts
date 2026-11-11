@@ -11,6 +11,20 @@ export const ROUTES: RouteDefinition[] = [
   { id: 'guide', path: '/directory' },
 ];
 
+export function getVisibleRoutes(
+  isLoggedIn: boolean,
+  isAdmin: boolean
+): RouteDefinition[] {
+  const routes: RouteDefinition[] = [...ROUTES];
+  if (isLoggedIn) {
+    routes.push({ id: 'myShop', path: '/my-shop' });
+  }
+  if (isLoggedIn && isAdmin) {
+    routes.push({ id: 'admin', path: '/admin' });
+  }
+  return routes;
+}
+
 export const DEFAULT_SCREEN: ScreenId = 'welcome';
 
 export function resolveInitialScreen(search: string, hash: string): ScreenId {
@@ -22,10 +36,17 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
   if (cleanHash === 'create' || cleanHash === 'skills') {
     return 'skills';
   }
+  if (cleanHash === 'my-shop' || cleanHash === 'myshop') {
+    return 'myShop';
+  }
+  if (cleanHash === 'admin') {
+    return 'admin';
+  }
   if (
     cleanHash === 'directory' ||
     cleanHash === 'public-shops' ||
     cleanHash === 'shops' ||
+    cleanHash === 'browse' ||
     cleanHash === 'how-it-works' ||
     cleanHash === 'about' ||
     cleanHash === 'guide'
@@ -41,6 +62,3 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
 export function getNextScreenOnStart(): ScreenId {
   return 'skills';
 }
-
-
-

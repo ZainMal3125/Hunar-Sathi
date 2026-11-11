@@ -6,6 +6,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isValidId(id) {
       return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -18,14 +22,31 @@ service cloud.firestore {
       return resource.data;
     }
 
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'email', 'role', 'createdAt']) &&
+        data.keys().hasOnly(['name', 'email', 'role', 'createdAt']) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+        data.role is string && (data.role == 'user' || data.role == 'admin') &&
+        data.createdAt is timestamp;
+    }
+
     function isValidShop(data) {
       return data.keys().hasAll([
         'ownerId',
+        'name',
         'shopName',
         'skill',
         'city',
         'agreeToShareContact',
         'whatsappNumber',
+        'visible',
         'isHidden',
         'products',
         'photos',
@@ -34,11 +55,14 @@ service cloud.firestore {
       ]) &&
       data.keys().hasOnly([
         'ownerId',
+        'ownerEmail',
+        'name',
         'shopName',
         'skill',
         'city',
         'agreeToShareContact',
         'whatsappNumber',
+        'visible',
         'isHidden',
         'isSample',
         'products',
@@ -47,14 +71,19 @@ service cloud.firestore {
         'updatedAt'
       ]) &&
       data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      (!('ownerEmail' in data) || (data.ownerEmail is string && data.ownerEmail.size() <= 160)) &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
       data.shopName is string && data.shopName.size() >= 1 && data.shopName.size() <= 120 &&
+      data.name == data.shopName &&
       data.skill is string && data.skill.size() >= 1 && data.skill.size() <= 120 &&
       data.city is string && data.city.size() >= 1 && data.city.size() <= 100 &&
       data.agreeToShareContact is bool &&
       data.whatsappNumber is string && data.whatsappNumber.size() <= 30 &&
       ((data.agreeToShareContact == true && data.whatsappNumber.size() <= 30) ||
        (data.agreeToShareContact == false && data.whatsappNumber == '')) &&
+      data.visible is bool &&
       data.isHidden is bool &&
+      data.visible != data.isHidden &&
       (!('isSample' in data) || data.isSample is bool) &&
       data.products is list && data.products.size() >= 1 && data.products.size() <= 3 &&
       data.products[0] is map &&
@@ -68,28 +97,78 @@ service cloud.firestore {
       allow get: if docId == 'connection';
     }
 
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidUser(incoming()) &&
+        request.auth.uid == userId &&
+        incoming().role == 'user' &&
+        incoming().createdAt == request.time;
+
+      allow update: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidUser(incoming()) &&
+        request.auth.uid == userId &&
+        incoming().role == existing().role &&
+        incoming().email == existing().email &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['name']);
+
+      allow delete: if false;
+    }
+
     match /shops/{shopId} {
-      allow get: if isValidId(shopId);
+      allow get: if isValidId(shopId) && (
+        resource == null ||
+        existing().isHidden == false ||
+        (isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()))
+      );
 
-      allow list: if existing().isHidden == false;
+      allow list: if existing().isHidden == false || isAdmin();
 
-      allow create: if isValidId(shopId) &&
+      allow create: if isSignedIn() &&
+        isValidId(shopId) &&
         isValidShop(incoming()) &&
+        shopId == request.auth.uid &&
+        incoming().ownerId == request.auth.uid &&
         incoming().createdAt == request.time &&
         incoming().updatedAt == request.time;
 
-      allow update: if isValidId(shopId) &&
+      allow update: if isSignedIn() &&
+        isValidId(shopId) &&
         isValidShop(incoming()) &&
         incoming().ownerId == existing().ownerId &&
         incoming().createdAt == existing().createdAt &&
-        incoming().updatedAt == request.time && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['isHidden', 'updatedAt']) ||
+        incoming().updatedAt == request.time &&
+        ((shopId == request.auth.uid && existing().ownerId == request.auth.uid) || isAdmin()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['visible', 'isHidden', 'updatedAt']) ||
           incoming().diff(existing()).affectedKeys().hasOnly([
+            'name',
             'shopName',
+            'ownerEmail',
             'skill',
             'city',
             'agreeToShareContact',
             'whatsappNumber',
+            'visible',
+            'isHidden',
+            'isSample',
+            'products',
+            'photos',
+            'createdAt'
+          ]) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name',
+            'shopName',
+            'ownerEmail',
+            'skill',
+            'city',
+            'agreeToShareContact',
+            'whatsappNumber',
+            'visible',
             'isHidden',
             'isSample',
             'products',
@@ -98,7 +177,9 @@ service cloud.firestore {
           ])
         );
 
-      allow delete: if isValidId(shopId);
+      allow delete: if isSignedIn() &&
+        isValidId(shopId) &&
+        ((shopId == request.auth.uid && existing().ownerId == request.auth.uid) || isAdmin());
     }
   }
 }

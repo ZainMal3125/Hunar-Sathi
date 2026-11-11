@@ -1,6 +1,6 @@
 export type Language = 'ur' | 'en';
 
-export type ScreenId = 'welcome' | 'skills' | 'guide';
+export type ScreenId = 'welcome' | 'skills' | 'guide' | 'myShop' | 'admin';
 
 export type SkillOptionId =
   | 'stitching'
@@ -73,6 +73,8 @@ export interface SaveShopTranslations {
   saveShopButton: string;
   savingShopButton: string;
   updateShopButton: string;
+  loginToSavePrompt: string;
+  loginToSaveButton: string;
   shopSavedTitle: string;
   viewPublicShopButton: string;
   copyShopLinkButton: string;
@@ -101,6 +103,7 @@ export interface PublicShopTranslations {
   contactWhatsappButtonUrdu: string;
   contactWhatsappButtonEnglish: string;
   manageShopHeading: string;
+  editShopButton: string;
   hideShopButton: string;
   unhideShopButton: string;
   deleteShopButton: string;
@@ -120,12 +123,115 @@ export interface DirectoryTranslations {
   priceRangeLabel: string;
   priceNotSet: string;
   openShopLabel: string;
+  ownerBadgeLabel: string;
+  editShopButton: string;
+  hideShopButton: string;
+  unhideShopButton: string;
+  deleteShopButton: string;
   noMatchingShops: string;
   resetFiltersButton: string;
   loadingTitle: string;
   browseDirectoryButton: string;
   errorLoadFailed: string;
   retryButton: string;
+}
+
+export interface AuthTranslations {
+  loginNavButton: string;
+  logoutNavButton: string;
+  loginTab: string;
+  registerTab: string;
+  loginHeading: string;
+  loginSubtitle: string;
+  registerHeading: string;
+  registerSubtitle: string;
+  returnNoticeBanner: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  emailLabel: string;
+  emailPlaceholder: string;
+  passwordLabel: string;
+  passwordPlaceholder: string;
+  confirmPasswordLabel: string;
+  confirmPasswordPlaceholder: string;
+  passwordHelper: string;
+  loginSubmitButton: string;
+  loggingInButton: string;
+  registerSubmitButton: string;
+  registeringButton: string;
+  switchToRegisterPrompt: string;
+  switchToRegisterAction: string;
+  switchToLoginPrompt: string;
+  switchToLoginAction: string;
+  backButton: string;
+  errorNameEmpty: string;
+  errorEmailInvalid: string;
+  errorPasswordShort: string;
+  errorPasswordMismatch: string;
+  errorWrongPassword: string;
+  errorEmailInUse: string;
+  errorWeakPassword: string;
+  errorProviderNotEnabled: string;
+  errorGeneric: string;
+  permissionDeniedTitle: string;
+  permissionDeniedSubtitle: string;
+  loginRequiredTitle: string;
+  loginRequiredSubtitle: string;
+}
+
+export interface MyShopTranslations {
+  heading: string;
+  subtitle: string;
+  loadingTitle: string;
+  emptyTitle: string;
+  emptySubtitle: string;
+  createYourShopButton: string;
+  statusLabel: string;
+  statusVisible: string;
+  statusHidden: string;
+  editShopButton: string;
+  cancelEditButton: string;
+  saveChangesButton: string;
+  savingChangesButton: string;
+  hideShopButton: string;
+  unhideShopButton: string;
+  deleteShopButton: string;
+  viewPublicPageButton: string;
+  copyLinkButton: string;
+  copiedLinkButton: string;
+  updatedSuccessMessage: string;
+  deletedSuccessMessage: string;
+  deleteConfirmTitle: string;
+  deleteConfirmMessage: string;
+  confirmDeleteButton: string;
+  cancelDeleteButton: string;
+}
+
+export interface AdminTranslations {
+  heading: string;
+  subtitle: string;
+  loadingTitle: string;
+  emptyTitle: string;
+  refreshButton: string;
+  totalShopsLabel: (count: number) => string;
+  colShopName: string;
+  colOwnerEmail: string;
+  colCity: string;
+  colStatus: string;
+  colActions: string;
+  statusVisible: string;
+  statusHidden: string;
+  hideButton: string;
+  unhideButton: string;
+  deleteButton: string;
+  viewShopButton: string;
+  ownerEmailUnknown: string;
+  deleteConfirmTitle: string;
+  deleteConfirmMessage: (shopName: string) => string;
+  confirmDeleteButton: string;
+  cancelDeleteButton: string;
+  errorLoadFailed: string;
+  errorActionFailed: string;
 }
 
 export interface AboutLimitationItem {
@@ -252,6 +358,9 @@ export interface TranslationContent {
   nextStep: NextStepTranslations;
   publicShop: PublicShopTranslations;
   directory: DirectoryTranslations;
+  auth: AuthTranslations;
+  myShop: MyShopTranslations;
+  admin: AdminTranslations;
   aboutLimitations: AboutLimitationsTranslations;
   createFlow: CreateFlowTranslations;
   screens: {
@@ -285,7 +394,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     nav: {
       welcome: 'ہوم',
       skills: 'بنائیں',
-      guide: 'عوامی دکانیں',
+      guide: 'دکانیں دیکھیں',
+      myShop: 'میری دکان',
+      admin: 'ایڈمن',
     },
     homePage: {
       chooseSkillHeading: 'اپنا ہنر منتخب کریں',
@@ -427,6 +538,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
         saveShopButton: 'دکان محفوظ کریں',
         savingShopButton: 'دکان محفوظ ہو رہی ہے...',
         updateShopButton: 'دکان اپ ڈیٹ کریں',
+        loginToSavePrompt:
+          'اپنی دکان محفوظ کرنے کے لیے براہ کرم پہلے لاگ ان یا رجسٹر کریں۔ آپ کا درج کردہ ڈیٹا محفوظ رہے گا۔',
+        loginToSaveButton: 'لاگ ان یا رجسٹر کر کے محفوظ کریں',
         shopSavedTitle: 'آپ کی دکان محفوظ ہو گئی ہے!',
         viewPublicShopButton: 'عوامی دکان دیکھیں',
         copyShopLinkButton: 'لنک کاپی کریں',
@@ -470,6 +584,7 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       contactWhatsappButtonUrdu: 'واٹس ایپ پر رابطہ کریں',
       contactWhatsappButtonEnglish: 'Contact on WhatsApp',
       manageShopHeading: 'دکان کی ترتیبات',
+      editShopButton: 'دکان میں تبدیلی کریں',
       hideShopButton: 'دکان چھپائیں',
       unhideShopButton: 'دکان دوبارہ دکھائیں',
       deleteShopButton: 'دکان حذف کریں',
@@ -477,7 +592,7 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       errorActionFailed: 'عمل مکمل کرنے میں مسئلہ پیش آیا۔ براہ کرم دوبارہ کوشش کریں۔',
     },
     directory: {
-      heading: 'عوامی دکانوں کی ڈائریکٹری',
+      heading: 'عوامی دکانیں تلاش کریں',
       subtitle: 'پاکستان بھر کی ہنرمند خواتین کی دکانیں ہنر اور شہر کے لحاظ سے دیکھیں۔',
       sampleDataBadgeUrdu: 'نمونہ ڈیٹا',
       sampleDataBadgeEnglish: 'Sample data',
@@ -488,12 +603,117 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       priceRangeLabel: 'قیمتوں کی حد',
       priceNotSet: 'قیمت باہمی مشورے سے',
       openShopLabel: 'دکان دیکھیں',
+      ownerBadgeLabel: 'آپ کی دکان',
+      editShopButton: 'ترمیم کریں',
+      hideShopButton: 'چھپائیں',
+      unhideShopButton: 'دکھائیں',
+      deleteShopButton: 'حذف کریں',
       noMatchingShops: 'منتخب ہنر اور شہر کے مطابق کوئی دکان نہیں ملی۔',
       resetFiltersButton: 'تمام فلٹر صاف کریں',
       loadingTitle: 'دکانوں کی فہرست لوڈ ہو رہی ہے...',
       browseDirectoryButton: 'دکانوں کی ڈائریکٹری دیکھیں',
       errorLoadFailed: 'دکانیں لوڈ کرنے میں رکاوٹ پیش آئی۔ دوبارہ کوشش کریں۔',
       retryButton: 'دوبارہ کوشش کریں',
+    },
+    auth: {
+      loginNavButton: 'لاگ ان',
+      logoutNavButton: 'لاگ آؤٹ',
+      loginTab: 'لاگ ان',
+      registerTab: 'نیا اکاؤنٹ بنائیں',
+      loginHeading: 'اپنے اکاؤنٹ میں لاگ ان کریں',
+      loginSubtitle: 'اپنی دکان محفوظ کرنے اور منظم کرنے کے لیے ای میل اور پاس ورڈ درج کریں۔',
+      registerHeading: 'نیا اکاؤنٹ بنائیں',
+      registerSubtitle: 'ہنر ساتھی پر اپنی آن لائن دکان بنانے کے لیے رجسٹر کریں۔',
+      returnNoticeBanner:
+        'لاگ ان یا رجسٹر مکمل ہوتے ہی آپ واپس اپنے کام پر پہنچ جائیں گی اور آپ کی درج کردہ معلومات محفوظ رہیں گی۔',
+      nameLabel: 'آپ کا نام',
+      namePlaceholder: 'مثلاً فاطمہ بی بی',
+      emailLabel: 'ای میل ایڈریس',
+      emailPlaceholder: 'name@example.com',
+      passwordLabel: 'پاس ورڈ',
+      passwordPlaceholder: 'کم از کم 6 حروف',
+      confirmPasswordLabel: 'پاس ورڈ کی تصدیق کریں',
+      confirmPasswordPlaceholder: 'پاس ورڈ دوبارہ لکھیں',
+      passwordHelper: 'پاس ورڈ کم از کم 6 حروف پر مشتمل ہونا چاہیے۔',
+      loginSubmitButton: 'لاگ ان کریں',
+      loggingInButton: 'لاگ ان ہو رہا ہے...',
+      registerSubmitButton: 'اکاؤنٹ بنائیں',
+      registeringButton: 'اکاؤنٹ بن رہا ہے...',
+      switchToRegisterPrompt: 'کیا آپ کا اکاؤنٹ نہیں ہے؟',
+      switchToRegisterAction: 'یہاں رجسٹر کریں',
+      switchToLoginPrompt: 'پہلے سے اکاؤنٹ موجود ہے؟',
+      switchToLoginAction: 'یہاں لاگ ان کریں',
+      backButton: 'واپس جائیں',
+      errorNameEmpty: 'براہ کرم اپنا نام درج کریں۔',
+      errorEmailInvalid: 'براہ کرم درست ای میل ایڈریس درج کریں۔',
+      errorPasswordShort: 'پاس ورڈ کم از کم 6 حروف کا ہونا ضروری ہے۔',
+      errorPasswordMismatch: 'دونوں پاس ورڈ ایک جیسے نہیں ہیں۔',
+      errorWrongPassword: 'ای میل یا پاس ورڈ غلط ہے۔ براہ کرم دوبارہ چیک کریں۔',
+      errorEmailInUse: 'یہ ای میل پہلے سے استعمال میں ہے۔ براہ کرم لاگ ان کریں۔',
+      errorWeakPassword: 'پاس ورڈ کمزور ہے۔ کم از کم 6 حروف استعمال کریں۔',
+      errorProviderNotEnabled:
+        'فائر بیس کنسول (Firebase Console → Authentication → Sign-in method) میں Email/Password سائن اِن ابھی فعال نہیں ہے۔ براہ کرم اسے فعال کریں۔',
+      errorGeneric: 'اکاؤنٹ کی تصدیق میں مسئلہ پیش آیا۔ دوبارہ کوشش کریں۔',
+      permissionDeniedTitle: 'رسائی کی اجازت نہیں ہے',
+      permissionDeniedSubtitle: 'آپ کو اس صفحے کو کھولنے یا تبدیل کرنے کی اجازت نہیں ہے۔',
+      loginRequiredTitle: 'لاگ ان ضروری ہے',
+      loginRequiredSubtitle: 'اس حصے کو استعمال کرنے کے لیے براہ کرم لاگ ان کریں۔',
+    },
+    myShop: {
+      heading: 'میری دکان',
+      subtitle: 'اپنی آن لائن دکان کی تفصیلات دیکھیں، ترمیم کریں، چھپائیں یا حذف کریں۔',
+      loadingTitle: 'آپ کی دکان لوڈ ہو رہی ہے...',
+      emptyTitle: 'آپ نے ابھی تک اپنی دکان نہیں بنائی',
+      emptySubtitle:
+        'اپنے ہنر اور کام کی تصاویر شامل کر کے چند منٹ میں اپنی آن لائن دکان بنائیں۔',
+      createYourShopButton: 'اپنی دکان بنائیں',
+      statusLabel: 'دکان کی حیثیت:',
+      statusVisible: 'عوامی طور پر نظر آ رہی ہے (Visible)',
+      statusHidden: 'چھپی ہوئی ہے (Hidden)',
+      editShopButton: 'ترمیم کریں (Edit)',
+      cancelEditButton: 'منسوخ کریں',
+      saveChangesButton: 'تبدیلیاں محفوظ کریں',
+      savingChangesButton: 'محفوظ ہو رہا ہے...',
+      hideShopButton: 'دکان چھپائیں',
+      unhideShopButton: 'دکان دکھائیں',
+      deleteShopButton: 'دکان حذف کریں',
+      viewPublicPageButton: 'عوامی دکان کا صفحہ دیکھیں',
+      copyLinkButton: 'لنک کاپی کریں',
+      copiedLinkButton: 'لنک کاپی ہو گیا',
+      updatedSuccessMessage: 'آپ کی دکان کامیابی سے اپ ڈیٹ ہو گئی ہے!',
+      deletedSuccessMessage: 'آپ کی دکان حذف کر دی گئی ہے۔',
+      deleteConfirmTitle: 'کیا آپ واقعی اپنی دکان حذف کرنا چاہتی ہیں؟',
+      deleteConfirmMessage:
+        'یہ عمل واپس نہیں ہو سکے گا اور آپ کی دکان مستقل طور پر ختم ہو جائے گی۔',
+      confirmDeleteButton: 'جی ہاں، حذف کریں',
+      cancelDeleteButton: 'نہیں، واپس جائیں',
+    },
+    admin: {
+      heading: 'ایڈمن پینل — تمام دکانیں',
+      subtitle: 'پلیٹ فارم کی تمام دکانیں (ظاہر اور چھپی ہوئی) دیکھیں اور منظم کریں۔',
+      loadingTitle: 'تمام دکانیں لوڈ ہو رہی ہیں...',
+      emptyTitle: 'اس وقت کوئی دکان موجود نہیں ہے۔',
+      refreshButton: 'تازہ کریں',
+      totalShopsLabel: (count: number) => `کل دکانیں: ${count}`,
+      colShopName: 'دکان کا نام',
+      colOwnerEmail: 'مالک کا ای میل',
+      colCity: 'شہر',
+      colStatus: 'حیثیت',
+      colActions: 'عمل',
+      statusVisible: 'ظاہر (Visible)',
+      statusHidden: 'پوشیدہ (Hidden)',
+      hideButton: 'چھپائیں',
+      unhideButton: 'دکھائیں',
+      deleteButton: 'حذف کریں',
+      viewShopButton: 'دیکھیں',
+      ownerEmailUnknown: 'فراہم نہیں کیا گیا',
+      deleteConfirmTitle: 'دکان حذف کرنے کی تصدیق',
+      deleteConfirmMessage: (shopName: string) =>
+        `کیا آپ واقعی "${shopName}" کو مستقل طور پر حذف کرنا چاہتے ہیں؟`,
+      confirmDeleteButton: 'جی ہاں، حذف کریں',
+      cancelDeleteButton: 'منسوخ کریں',
+      errorLoadFailed: 'دکانوں کی فہرست حاصل کرنے میں مسئلہ پیش آیا۔',
+      errorActionFailed: 'عمل مکمل کرنے میں رکاوٹ پیش آئی۔',
     },
     aboutLimitations: {
       pageHeading: 'طریقۂ کار',
@@ -606,7 +826,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     nav: {
       welcome: 'Home',
       skills: 'Create',
-      guide: 'Public shops',
+      guide: 'Browse Shops',
+      myShop: 'My Shop',
+      admin: 'Admin',
     },
     homePage: {
       chooseSkillHeading: 'Choose your skill',
@@ -748,6 +970,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
         saveShopButton: 'Save shop',
         savingShopButton: 'Saving shop...',
         updateShopButton: 'Update shop',
+        loginToSavePrompt:
+          'Please log in or register to save your shop. Your entered photos, ideas, and prices will be kept safe.',
+        loginToSaveButton: 'Log in or Register to Save Shop',
         shopSavedTitle: 'Your shop is saved!',
         viewPublicShopButton: 'View public shop',
         copyShopLinkButton: 'Copy shop link',
@@ -791,6 +1016,7 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       contactWhatsappButtonUrdu: 'واٹس ایپ پر رابطہ کریں',
       contactWhatsappButtonEnglish: 'Contact on WhatsApp',
       manageShopHeading: 'Manage Shop',
+      editShopButton: 'Edit shop',
       hideShopButton: 'Hide shop',
       unhideShopButton: 'Unhide shop',
       deleteShopButton: 'Delete shop',
@@ -798,8 +1024,8 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       errorActionFailed: 'Could not complete this action. Please try again.',
     },
     directory: {
-      heading: 'Public Shops Directory',
-      subtitle: 'Browse public shops by skill and city across Pakistan.',
+      heading: 'Browse Shops',
+      subtitle: 'Browse visible public shops by skill and city across Pakistan.',
       sampleDataBadgeUrdu: 'نمونہ ڈیٹا',
       sampleDataBadgeEnglish: 'Sample data',
       skillFilterLabel: 'Filter by skill',
@@ -809,12 +1035,117 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       priceRangeLabel: 'Price range',
       priceNotSet: 'Price on request',
       openShopLabel: 'Open shop',
+      ownerBadgeLabel: 'Your Shop',
+      editShopButton: 'Edit',
+      hideShopButton: 'Hide',
+      unhideShopButton: 'Unhide',
+      deleteShopButton: 'Delete',
       noMatchingShops: 'No public shops match the selected skill and city filters.',
       resetFiltersButton: 'Reset filters',
       loadingTitle: 'Loading public shops...',
-      browseDirectoryButton: 'Browse Shop Directory',
+      browseDirectoryButton: 'Browse Shops',
       errorLoadFailed: 'Could not refresh live shops. Please try again.',
       retryButton: 'Try Again',
+    },
+    auth: {
+      loginNavButton: 'Login',
+      logoutNavButton: 'Logout',
+      loginTab: 'Login',
+      registerTab: 'Register',
+      loginHeading: 'Log in to your account',
+      loginSubtitle: 'Enter your email and password to manage your shop.',
+      registerHeading: 'Create your account',
+      registerSubtitle: 'Register to save and manage your shop on Hunar Saathi.',
+      returnNoticeBanner:
+        'Once you log in or register, you will return right back to your work without losing any entered details.',
+      nameLabel: 'Your Name',
+      namePlaceholder: 'e.g. Fatima Bibi',
+      emailLabel: 'Email Address',
+      emailPlaceholder: 'name@example.com',
+      passwordLabel: 'Password',
+      passwordPlaceholder: 'At least 6 characters',
+      confirmPasswordLabel: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Re-enter your password',
+      passwordHelper: 'Password must be at least 6 characters.',
+      loginSubmitButton: 'Login',
+      loggingInButton: 'Logging in...',
+      registerSubmitButton: 'Register',
+      registeringButton: 'Creating account...',
+      switchToRegisterPrompt: "Don't have an account?",
+      switchToRegisterAction: 'Register here',
+      switchToLoginPrompt: 'Already have an account?',
+      switchToLoginAction: 'Login here',
+      backButton: 'Go Back',
+      errorNameEmpty: 'Please enter your name.',
+      errorEmailInvalid: 'Please enter a valid email address.',
+      errorPasswordShort: 'Password must be at least 6 characters.',
+      errorPasswordMismatch: 'Passwords do not match.',
+      errorWrongPassword: 'Incorrect email or password. Please try again.',
+      errorEmailInUse: 'This email is already in use. Please log in instead.',
+      errorWeakPassword: 'Weak password. Please enter at least 6 characters.',
+      errorProviderNotEnabled:
+        'Email/Password sign-in is not enabled yet in Firebase Console (Authentication → Sign-in method → Email/Password). Please enable it first.',
+      errorGeneric: 'Authentication failed. Please try again.',
+      permissionDeniedTitle: 'Permission Denied',
+      permissionDeniedSubtitle: 'You do not have permission to view or manage this page.',
+      loginRequiredTitle: 'Login Required',
+      loginRequiredSubtitle: 'Please log in to view and manage your shop.',
+    },
+    myShop: {
+      heading: 'My Shop',
+      subtitle: 'View, edit, hide/unhide, or delete your personal shop.',
+      loadingTitle: 'Loading your shop...',
+      emptyTitle: 'You do not have a shop yet',
+      emptySubtitle:
+        'Share your skill, city, and work photos to create your public shop in minutes.',
+      createYourShopButton: 'Create your shop',
+      statusLabel: 'Status:',
+      statusVisible: 'Visible in Browse Shops',
+      statusHidden: 'Hidden from public',
+      editShopButton: 'Edit',
+      cancelEditButton: 'Cancel',
+      saveChangesButton: 'Save changes',
+      savingChangesButton: 'Saving...',
+      hideShopButton: 'Hide',
+      unhideShopButton: 'Unhide',
+      deleteShopButton: 'Delete',
+      viewPublicPageButton: 'View public shop page',
+      copyLinkButton: 'Copy shop link',
+      copiedLinkButton: 'Link copied',
+      updatedSuccessMessage: 'Your shop has been updated!',
+      deletedSuccessMessage: 'Your shop has been deleted.',
+      deleteConfirmTitle: 'Delete your shop?',
+      deleteConfirmMessage:
+        'Are you sure you want to permanently delete your shop? This action cannot be undone.',
+      confirmDeleteButton: 'Yes, delete shop',
+      cancelDeleteButton: 'Cancel',
+    },
+    admin: {
+      heading: 'Admin Panel — All Shops',
+      subtitle: 'View and manage all shops across Hunar Saathi (including hidden shops).',
+      loadingTitle: 'Loading all shops...',
+      emptyTitle: 'No shops found.',
+      refreshButton: 'Refresh',
+      totalShopsLabel: (count: number) => `Total shops: ${count}`,
+      colShopName: 'Shop Name',
+      colOwnerEmail: 'Owner Email',
+      colCity: 'City',
+      colStatus: 'Status',
+      colActions: 'Actions',
+      statusVisible: 'Visible',
+      statusHidden: 'Hidden',
+      hideButton: 'Hide',
+      unhideButton: 'Unhide',
+      deleteButton: 'Delete',
+      viewShopButton: 'View',
+      ownerEmailUnknown: 'Not provided',
+      deleteConfirmTitle: 'Confirm Shop Deletion',
+      deleteConfirmMessage: (shopName: string) =>
+        `Are you sure you want to permanently delete "${shopName}"?`,
+      confirmDeleteButton: 'Yes, delete',
+      cancelDeleteButton: 'Cancel',
+      errorLoadFailed: 'Could not load shops list.',
+      errorActionFailed: 'Could not complete action.',
     },
     aboutLimitations: {
       pageHeading: 'How it works',

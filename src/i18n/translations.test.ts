@@ -8,6 +8,7 @@ import {
 import {
   DEFAULT_SCREEN,
   getNextScreenOnStart,
+  getVisibleRoutes,
   resolveInitialScreen,
   ROUTES,
 } from '../navigation/routes';
@@ -35,7 +36,7 @@ test('toggleLanguageValue flips between ur and en', () => {
   assert.equal(toggleLanguageValue('en'), 'ur');
 });
 
-test('navigation structure has Home, Create, and How it works tabs and transitions to Create on Start', () => {
+test('navigation structure supports logged-out, logged-in user, and admin tabs', () => {
   assert.equal(DEFAULT_SCREEN, 'welcome');
   assert.equal(resolveInitialScreen('', ''), 'welcome');
   assert.equal(resolveInitialScreen('', '#home'), 'welcome');
@@ -44,22 +45,33 @@ test('navigation structure has Home, Create, and How it works tabs and transitio
   assert.equal(resolveInitialScreen('', '#skills'), 'skills');
   assert.equal(resolveInitialScreen('', '#how-it-works'), 'guide');
   assert.equal(resolveInitialScreen('', '#guide'), 'guide');
-  assert.equal(resolveInitialScreen('', '#about'), 'guide');
+  assert.equal(resolveInitialScreen('', '#my-shop'), 'myShop');
+  assert.equal(resolveInitialScreen('', '#admin'), 'admin');
   assert.equal(getNextScreenOnStart(), 'skills');
   assert.equal(ROUTES.length, 3);
 
+  assert.deepEqual(
+    getVisibleRoutes(false, false).map((r) => r.id),
+    ['welcome', 'skills', 'guide']
+  );
+  assert.deepEqual(
+    getVisibleRoutes(true, false).map((r) => r.id),
+    ['welcome', 'skills', 'guide', 'myShop']
+  );
+  assert.deepEqual(
+    getVisibleRoutes(true, true).map((r) => r.id),
+    ['welcome', 'skills', 'guide', 'myShop', 'admin']
+  );
+
   const en = getTranslation('en');
   const ur = getTranslation('ur');
-  assert.deepEqual(en.nav, {
-    welcome: 'Home',
-    skills: 'Create',
-    guide: 'Public shops',
-  });
-  assert.deepEqual(ur.nav, {
-    welcome: 'ہوم',
-    skills: 'بنائیں',
-    guide: 'عوامی دکانیں',
-  });
+  assert.equal(en.nav.welcome, 'Home');
+  assert.equal(en.nav.skills, 'Create');
+  assert.equal(en.nav.guide, 'Browse Shops');
+  assert.equal(en.nav.myShop, 'My Shop');
+  assert.equal(en.nav.admin, 'Admin');
+  assert.equal(ur.nav.myShop, 'میری دکان');
+  assert.equal(ur.nav.admin, 'ایڈمن');
 });
 
 test('How it works page contains 4-step explanation, 4 FAQs, and 4 AI & limitations disclosures in Urdu and English', () => {
@@ -83,6 +95,3 @@ test('How it works page contains 4-step explanation, 4 FAQs, and 4 AI & limitati
   assert.match(`${en.items[2].title} ${en.items[2].description}`, /shared only with consent/i);
   assert.match(`${en.items[3].title} ${en.items[3].description}`, /prototype/i);
 });
-
-
-

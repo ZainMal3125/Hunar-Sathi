@@ -18,7 +18,6 @@ interface WelcomeScreenProps {
   content: TranslationContent;
   onStart: () => void;
   onSelectSkill: (skillId: SkillOptionId) => void;
-  onOpenDirectory: () => void;
 }
 
 const HOME_SKILLS: Array<{
@@ -38,7 +37,6 @@ export function WelcomeScreen({
   content,
   onStart,
   onSelectSkill,
-  onOpenDirectory,
 }: WelcomeScreenProps) {
   const isRtl = content.dir === 'rtl';
   const home = content.homePage;
@@ -201,41 +199,7 @@ export function WelcomeScreen({
         </div>
       </div>
 
-      {/* 3. "Public shops" Card */}
-      <div
-        data-testid="home-public-shops"
-        className="animate-fade-in flex flex-col gap-3.5 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-2xs"
-      >
-        <div className="flex items-start gap-3.5">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] text-[var(--color-accent)]"
-          >
-            <Store className="h-5 w-5 stroke-[2]" />
-          </span>
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <h2 className="text-xl font-bold text-[var(--color-primary)]">
-              {home.publicShopsHeading}
-            </h2>
-            <p className="text-sm font-medium text-[var(--color-text-muted)]">
-              {home.publicShopsSubtitle}
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          id="home-open-public-shops-btn"
-          data-testid="home-open-public-shops-btn"
-          onClick={onOpenDirectory}
-          className="group flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-canvas)] px-5 py-3 text-center text-base font-bold text-[var(--color-primary)] shadow-2xs transition-all duration-150 hover:bg-[var(--color-primary)] hover:text-white active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
-        >
-          <Store aria-hidden="true" className="h-5 w-5 shrink-0" />
-          <span>{home.publicShopsButton}</span>
-        </button>
-      </div>
-
-      {/* 4. "What you get" Cards */}
+      {/* 3. "What you get" Cards */}
       <div
         data-testid="home-what-you-get"
         className="animate-fade-in flex flex-col gap-3"
@@ -273,7 +237,7 @@ export function WelcomeScreen({
         </div>
       </div>
 
-      {/* 5. Trust Section (3 Short Points) */}
+      {/* 4. Trust Section (3 Short Points) */}
       <div
         data-testid="home-trust-section"
         className="animate-fade-in flex flex-col gap-3 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-2xs"
@@ -303,34 +267,6 @@ export function WelcomeScreen({
           })}
         </ul>
       </div>
-
-      {/* 6. Footer Strip with UN SDG 5, 8 and 1 Badges */}
-      <footer
-        data-testid="home-sdg-footer"
-        className="animate-fade-in flex flex-col items-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/75 px-4 py-4 text-center"
-      >
-        <span className="text-xs font-bold text-[var(--color-text-muted)]">
-          {home.sdgFooterTitle}
-        </span>
-
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {home.sdgBadges.map((badge) => (
-            <span
-              key={badge.number}
-              data-testid={`sdg-badge-${badge.number.replace(/\s+/g, '-').toLowerCase()}`}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-3 py-1.5 text-xs font-bold text-[var(--color-primary)] shadow-2xs"
-            >
-              <span
-                dir="ltr"
-                className="font-english rounded-md bg-[var(--color-primary)] px-1.5 py-0.5 text-[11px] font-bold text-white"
-              >
-                {badge.number}
-              </span>
-              <span>{badge.title}</span>
-            </span>
-          ))}
-        </div>
-      </footer>
     </section>
   );
 }

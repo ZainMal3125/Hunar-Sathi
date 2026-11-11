@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Check,
   Copy,
@@ -6,8 +6,10 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  LogIn,
   Store,
   Trash2,
+  X,
 } from 'lucide-react';
 import {
   deleteShopFromFirestore,
@@ -18,44 +20,66 @@ import { TranslationContent } from '../i18n/translations';
 import {
   ShopProductItem,
   ShopRecord,
+  UserProfile,
   validateSaveShopInput,
 } from '../utils/shopManager';
 
+export interface DraftSaveShopFields {
+  shopName: string;
+  agreeToShareContact: boolean;
+  whatsappNumber: string;
+}
+
 interface SaveShopSectionProps {
   content: TranslationContent;
+  userProfile: UserProfile | null;
   skill: string;
   city: string;
   products: ShopProductItem[];
   photos: string[];
   savedShop: ShopRecord | null;
+  draftFields: DraftSaveShopFields;
+  onDraftChange: (next: DraftSaveShopFields) => void;
+  onRequireAuth: () => void;
   onShopSaved: (shop: ShopRecord | null) => void;
   onOpenPublicShop: (shopId: string) => void;
 }
 
 export function SaveShopSection({
   content,
+  userProfile,
   skill,
   city,
   products,
   photos,
   savedShop,
+  draftFields,
+  onDraftChange,
+  onRequireAuth,
   onShopSaved,
   onOpenPublicShop,
 }: SaveShopSectionProps) {
-  const [shopName, setShopName] = useState(savedShop?.shopName ?? '');
-  const [agreeToShareContact, setAgreeToShareContact] = useState(
-    savedShop?.agreeToShareContact ?? false
-  );
-  const [whatsappNumber, setWhatsappNumber] = useState(
-    savedShop?.whatsappNumber ?? ''
-  );
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const labels = content.nextStep.saveShop;
+  const myShopLabels = content.myShop;
+
+  useEffect(() => {
+    if (savedShop && !draftFields.shopName) {
+      onDraftChange({
+        shopName: savedShop.shopName,
+        agreeToShareContact: savedShop.agreeToShareContact,
+        whatsappNumber: savedShop.whatsappNumber,
+      });
+    }
+  }, [savedShop, draftFields.shopName, onDraftChange]);
+
+  const { shopName, agreeToShareContact, whatsappNumber } = draftFields;
 
   const handleSaveShop = async () => {
     setValidationError(null);
@@ -80,11 +104,18 @@ export function SaveShopSection({
       return;
     }
 
+    // Saving the shop from the Create flow requires login; if not logged in, prompt to log in or register first
+    if (!userProfile) {
+      onRequireAuth();
+      return;
+    }
+
     setIsSaving(true);
     try {
       const saved = await saveShopToFirestore(
         {
           shopName,
+          ownerEmail: userProfile.email,
           skill,
           city,
           agreeToShareContact,
@@ -92,7 +123,7 @@ export function SaveShopSection({
           products,
           photos,
         },
-        savedShop?.id
+        userProfile.uid
       );
       onShopSaved(saved);
     } catch {
@@ -112,6 +143,7 @@ export function SaveShopSection({
       onShopSaved({
         ...savedShop,
         isHidden: nextHidden,
+        visible: !nextHidden,
       });
     } catch {
       setValidationError(labels.errorSaveFailed);
@@ -126,6 +158,7 @@ export function SaveShopSection({
     setValidationError(null);
     try {
       await deleteShopFromFirestore(savedShop.id);
+      setShowDeleteConfirm(false);
       onShopSaved(null);
       setStatusMessage(labels.shopDeletedMessage);
     } catch {
@@ -177,6 +210,28 @@ export function SaveShopSection({
         {labels.cardSubtitle}
       </p>
 
+      {/* Notice if not logged in */}
+      {!userProfile && (
+        <div
+          data-testid="save-shop-login-notice"
+          className="flex flex-col gap-3 rounded-2xl border border-[var(--color-accent)]/40 bg-[var(--color-canvas)] p-4"
+        >
+          <p className="text-sm font-bold text-[var(--color-text)]">
+            {labels.loginToSavePrompt}
+          </p>
+          <button
+            type="button"
+            id="save-shop-prompt-login-btn"
+            data-testid="save-shop-prompt-login-btn"
+            onClick={onRequireAuth}
+            className="inline-flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)]/40 bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white"
+          >
+            <LogIn aria-hidden="true" className="h-4 w-4 shrink-0" />
+            <span>{labels.loginToSaveButton}</span>
+          </button>
+        </div>
+      )}
+
       {/* Shop Name Input */}
       <div className="flex flex-col gap-2">
         <label
@@ -190,7 +245,9 @@ export function SaveShopSection({
           data-testid="shop-name-input"
           type="text"
           value={shopName}
-          onChange={(e) => setShopName(e.target.value)}
+          onChange={(e) =>
+            onDraftChange({ ...draftFields, shopName: e.target.value })
+          }
           placeholder={labels.shopNamePlaceholder}
           className="min-h-[56px] w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-4 py-3 text-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]/60 focus:border-[var(--color-primary)] focus:outline-2 focus:outline-[var(--color-primary)]"
         />
@@ -209,10 +266,11 @@ export function SaveShopSection({
             checked={agreeToShareContact}
             onChange={(e) => {
               const checked = e.target.checked;
-              setAgreeToShareContact(checked);
-              if (!checked) {
-                setWhatsappNumber('');
-              }
+              onDraftChange({
+                ...draftFields,
+                agreeToShareContact: checked,
+                whatsappNumber: checked ? whatsappNumber : '',
+              });
             }}
             className="mt-1.5 h-6 w-6 shrink-0 rounded-md accent-[var(--color-primary)] cursor-pointer"
           />
@@ -238,7 +296,9 @@ export function SaveShopSection({
             dir="ltr"
             disabled={!agreeToShareContact}
             value={agreeToShareContact ? whatsappNumber : ''}
-            onChange={(e) => setWhatsappNumber(e.target.value)}
+            onChange={(e) =>
+              onDraftChange({ ...draftFields, whatsappNumber: e.target.value })
+            }
             placeholder={labels.whatsappNumberPlaceholder}
             className={`font-english min-h-[54px] w-full rounded-2xl border px-4 py-3 text-lg text-[var(--color-text)] tabular-nums placeholder:text-[var(--color-text-muted)]/60 focus:outline-2 ${
               agreeToShareContact
@@ -296,8 +356,8 @@ export function SaveShopSection({
         )}
       </button>
 
-      {/* Saved Shop Actions: View /shop/:id, Hide/Unhide, Delete */}
-      {savedShop && (
+      {/* Saved Shop Actions: View /shop/:id, Hide/Unhide, Delete (only when logged in as owner) */}
+      {savedShop && userProfile && (
         <div
           data-testid="saved-shop-controls"
           className="flex flex-col gap-4 border-t border-[var(--color-border)] pt-5"
@@ -378,13 +438,51 @@ export function SaveShopSection({
               id="delete-shop-btn"
               data-testid="delete-shop-btn"
               disabled={isUpdatingStatus}
-              onClick={handleDeleteShop}
+              onClick={() => setShowDeleteConfirm(true)}
               className="flex min-h-[54px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-primary)]/40 bg-[var(--color-canvas)] px-5 py-3 text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)] hover:text-white whitespace-nowrap"
             >
               <Trash2 aria-hidden="true" className="h-5 w-5 shrink-0" />
               <span>{labels.deleteShopButton}</span>
             </button>
           </div>
+
+          {showDeleteConfirm && (
+            <div
+              role="alertdialog"
+              data-testid="save-shop-delete-confirm-dialog"
+              className="flex flex-col gap-3 rounded-2xl border-2 border-[var(--color-primary)] bg-[var(--color-canvas)] p-4"
+            >
+              <p className="text-base font-bold text-[var(--color-primary)]">
+                {myShopLabels.deleteConfirmTitle}
+              </p>
+              <p className="text-sm font-medium text-[var(--color-text)]">
+                {myShopLabels.deleteConfirmMessage}
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  id="confirm-delete-saved-shop-btn"
+                  data-testid="confirm-delete-saved-shop-btn"
+                  disabled={isUpdatingStatus}
+                  onClick={handleDeleteShop}
+                  className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white"
+                >
+                  <Trash2 aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  <span>{myShopLabels.confirmDeleteButton}</span>
+                </button>
+                <button
+                  type="button"
+                  id="cancel-delete-saved-shop-btn"
+                  data-testid="cancel-delete-saved-shop-btn"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)]"
+                >
+                  <X aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  <span>{myShopLabels.cancelDeleteButton}</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </article>

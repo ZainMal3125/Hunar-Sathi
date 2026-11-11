@@ -1,20 +1,61 @@
 {
   "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile with role-based access control.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name of the user.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "role": {
+          "type": "string",
+          "description": "User role: 'user' or 'admin'. Clients can only set 'user' on creation.",
+          "enum": ["user", "admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the user registered."
+        }
+      },
+      "required": ["name", "email", "role", "createdAt"]
+    },
     "Shop": {
       "title": "Shop",
-      "description": "Public shop profile created by a home-based woman artisan in Pakistan.",
+      "description": "Public shop profile created by a home-based woman artisan in Pakistan (one shop per user at shops/{uid}).",
       "type": "object",
       "properties": {
         "ownerId": {
           "type": "string",
-          "description": "Owner identifier or manage token for the creator of the shop.",
+          "description": "UID of the authenticated user who owns the shop.",
           "minLength": 1,
           "maxLength": 128,
           "pattern": "^[a-zA-Z0-9_\\-]+$"
         },
+        "ownerEmail": {
+          "type": "string",
+          "description": "Email address of the shop owner for administrative listing.",
+          "maxLength": 160
+        },
+        "name": {
+          "type": "string",
+          "description": "Canonical shop name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
         "shopName": {
           "type": "string",
-          "description": "Artisan or shop name displayed on the public shop page.",
+          "description": "Display shop name.",
           "minLength": 1,
           "maxLength": 120
         },
@@ -39,17 +80,21 @@
           "description": "Optional WhatsApp phone number, stored only if agreeToShareContact is true.",
           "maxLength": 30
         },
+        "visible": {
+          "type": "boolean",
+          "description": "Whether the shop is visible in the public directory."
+        },
         "isHidden": {
           "type": "boolean",
-          "description": "Whether the shop is hidden from public visitors."
+          "description": "Inverse of visible (!visible) for backward compatibility."
         },
         "isSample": {
           "type": "boolean",
-          "description": "Whether the shop is a seeded sample shop displaying a Sample data badge."
+          "description": "Whether the shop is a seeded sample shop."
         },
         "products": {
           "type": "array",
-          "description": "List of up to 3 suggested products with name, description, price, and compressed photos."
+          "description": "List of 1 to 3 products with name, description, reason, price, and photos."
         },
         "photos": {
           "type": "array",
@@ -68,11 +113,13 @@
       },
       "required": [
         "ownerId",
+        "name",
         "shopName",
         "skill",
         "city",
         "agreeToShareContact",
         "whatsappNumber",
+        "visible",
         "isHidden",
         "products",
         "photos",
@@ -82,11 +129,17 @@
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profile and role ('user' or 'admin') keyed by Firebase Auth UID."
+    },
     "/shops/{shopId}": {
       "schema": {
         "$ref": "#/entities/Shop"
       },
-      "description": "Stores artisan shops accessible at /shop/:id."
+      "description": "Stores each user's single shop keyed by owner UID (shops/{uid})."
     }
   }
 }

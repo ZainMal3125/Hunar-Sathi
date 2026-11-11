@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Edit3,
   Eye,
   EyeOff,
   Image,
@@ -11,6 +12,7 @@ import {
   ShoppingBag,
   Store,
   Trash2,
+  X,
 } from 'lucide-react';
 import {
   deleteShopFromFirestore,
@@ -20,30 +22,42 @@ import {
 import { TranslationContent } from '../i18n/translations';
 import { formatPkr } from '../utils/priceCalculator';
 import { isSampleShop } from '../utils/shopDirectory';
-import { buildWhatsappContactUrl, ShopRecord } from '../utils/shopManager';
+import {
+  buildWhatsappContactUrl,
+  canUserManageShop,
+  isOwnerOfShop,
+  ShopRecord,
+  UserProfile,
+} from '../utils/shopManager';
 
 interface PublicShopScreenProps {
   shopId: string;
   content: TranslationContent;
+  userProfile: UserProfile | null;
   onBackToApp: () => void;
   onOpenDirectory?: () => void;
+  onEditMyShop?: () => void;
   onShopUpdated?: (shop: ShopRecord | null) => void;
 }
 
 export function PublicShopScreen({
   shopId,
   content,
+  userProfile,
   onBackToApp,
   onOpenDirectory,
+  onEditMyShop,
   onShopUpdated,
 }: PublicShopScreenProps) {
   const [shop, setShop] = useState<ShopRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isMutating, setIsMutating] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   const labels = content.publicShop;
+  const myShopLabels = content.myShop;
   const isRtl = content.dir === 'rtl';
 
   useEffect(() => {
@@ -84,7 +98,11 @@ export function PublicShopScreen({
     try {
       const nextHidden = !shop.isHidden;
       await updateShopVisibilityInFirestore(shop.id, nextHidden);
-      const updated = { ...shop, isHidden: nextHidden };
+      const updated: ShopRecord = {
+        ...shop,
+        isHidden: nextHidden,
+        visible: !nextHidden,
+      };
       setShop(updated);
       onShopUpdated?.(updated);
     } catch {
@@ -100,6 +118,7 @@ export function PublicShopScreen({
     setMutationError(null);
     try {
       await deleteShopFromFirestore(shop.id);
+      setShowDeleteConfirm(false);
       setShop(null);
       setNotFound(true);
       onShopUpdated?.(null);
@@ -157,6 +176,13 @@ export function PublicShopScreen({
       </section>
     );
   }
+
+  const canManage = canUserManageShop(
+    shop,
+    userProfile?.uid,
+    userProfile?.role
+  );
+  const isOwner = isOwnerOfShop(shop, userProfile?.uid);
 
   const whatsappUrl =
     shop.agreeToShareContact && shop.whatsappNumber
@@ -356,64 +382,120 @@ export function PublicShopScreen({
         </>
       )}
 
-      {/* Owner Controls: Hide / Unhide Shop & Delete Shop */}
-      <article
-        data-testid="public-shop-manage-card"
-        className="flex flex-col gap-4 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 sm:p-8"
-      >
-        <h2 className="text-xl font-bold text-[var(--color-primary)] border-b border-[var(--color-border)] pb-3">
-          {labels.manageShopHeading}
-        </h2>
+      {/* Owner or Admin Controls: ONLY visible if logged-in owner or admin */}
+      {canManage && (
+        <article
+          data-testid="public-shop-manage-card"
+          className="flex flex-col gap-4 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 sm:p-8"
+        >
+          <h2 className="text-xl font-bold text-[var(--color-primary)] border-b border-[var(--color-border)] pb-3">
+            {labels.manageShopHeading}
+          </h2>
 
-        {mutationError && (
-          <p
-            role="alert"
-            data-testid="public-shop-mutation-error"
-            className="text-base font-bold text-[var(--color-primary)]"
-          >
-            {mutationError}
-          </p>
-        )}
+          {mutationError && (
+            <p
+              role="alert"
+              data-testid="public-shop-mutation-error"
+              className="text-base font-bold text-[var(--color-primary)]"
+            >
+              {mutationError}
+            </p>
+          )}
 
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-          <button
-            type="button"
-            id="public-toggle-hide-btn"
-            data-testid="public-toggle-hide-btn"
-            disabled={isMutating}
-            onClick={handleToggleVisibility}
-            className="flex min-h-[56px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-border)]"
-          >
-            {shop.isHidden ? (
-              <Eye aria-hidden="true" className="h-5 w-5 shrink-0" />
-            ) : (
-              <EyeOff aria-hidden="true" className="h-5 w-5 shrink-0" />
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            {isOwner && onEditMyShop && (
+              <button
+                type="button"
+                id="public-edit-shop-btn"
+                data-testid="public-edit-shop-btn"
+                disabled={isMutating}
+                onClick={onEditMyShop}
+                className="flex min-h-[56px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
+              >
+                <Edit3 aria-hidden="true" className="h-5 w-5 shrink-0" />
+                <span>{labels.editShopButton}</span>
+              </button>
             )}
-            <span>
-              {shop.isHidden ? labels.unhideShopButton : labels.hideShopButton}
-            </span>
-          </button>
 
-          <button
-            type="button"
-            id="public-delete-shop-btn"
-            data-testid="public-delete-shop-btn"
-            disabled={isMutating}
-            onClick={handleDelete}
-            className="flex min-h-[56px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-primary)]/40 bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)] hover:text-white"
-          >
-            <Trash2 aria-hidden="true" className="h-5 w-5 shrink-0" />
-            <span>{labels.deleteShopButton}</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              id="public-toggle-hide-btn"
+              data-testid="public-toggle-hide-btn"
+              disabled={isMutating}
+              onClick={handleToggleVisibility}
+              className="flex min-h-[56px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-border)]"
+            >
+              {shop.isHidden ? (
+                <Eye aria-hidden="true" className="h-5 w-5 shrink-0" />
+              ) : (
+                <EyeOff aria-hidden="true" className="h-5 w-5 shrink-0" />
+              )}
+              <span>
+                {shop.isHidden ? labels.unhideShopButton : labels.hideShopButton}
+              </span>
+            </button>
 
+            <button
+              type="button"
+              id="public-delete-shop-btn"
+              data-testid="public-delete-shop-btn"
+              disabled={isMutating}
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex min-h-[56px] items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-primary)]/40 bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)] hover:text-white"
+            >
+              <Trash2 aria-hidden="true" className="h-5 w-5 shrink-0" />
+              <span>{labels.deleteShopButton}</span>
+            </button>
+          </div>
+
+          {showDeleteConfirm && (
+            <div
+              role="alertdialog"
+              data-testid="public-shop-delete-confirm-dialog"
+              className="flex flex-col gap-3 rounded-2xl border-2 border-[var(--color-primary)] bg-[var(--color-canvas)] p-4"
+            >
+              <p className="text-base font-bold text-[var(--color-primary)]">
+                {myShopLabels.deleteConfirmTitle}
+              </p>
+              <p className="text-sm font-medium text-[var(--color-text)]">
+                {myShopLabels.deleteConfirmMessage}
+              </p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  id="public-confirm-delete-btn"
+                  data-testid="public-confirm-delete-btn"
+                  disabled={isMutating}
+                  onClick={handleDelete}
+                  className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white"
+                >
+                  <Trash2 aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  <span>{myShopLabels.confirmDeleteButton}</span>
+                </button>
+                <button
+                  type="button"
+                  id="public-cancel-delete-btn"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-bold text-[var(--color-text)]"
+                >
+                  <X aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  <span>{myShopLabels.cancelDeleteButton}</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </article>
+      )}
+
+      {/* Visitor / Navigation Footer Buttons */}
+      <div className="flex flex-col gap-3">
         {onOpenDirectory && (
           <button
             type="button"
             id="public-open-directory-btn"
             data-testid="public-open-directory-btn"
             onClick={onOpenDirectory}
-            className="mt-1 flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] px-5 py-3 text-center text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
+            className="flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-3 text-center text-lg font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
           >
             <Store aria-hidden="true" className="h-5 w-5 shrink-0" />
             <span>{content.directory.browseDirectoryButton}</span>
@@ -424,7 +506,7 @@ export function PublicShopScreen({
           type="button"
           id="public-back-to-app-btn"
           onClick={onBackToApp}
-          className="mt-1 flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-primary)] px-6 py-3.5 text-center text-lg font-bold text-white transition-transform duration-150 active:scale-[0.98]"
+          className="flex min-h-[56px] w-full items-center justify-center gap-3 rounded-2xl bg-[var(--color-primary)] px-6 py-3.5 text-center text-lg font-bold text-white transition-transform duration-150 active:scale-[0.98]"
         >
           {isRtl ? (
             <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0" />
@@ -433,7 +515,7 @@ export function PublicShopScreen({
           )}
           <span>{labels.backToAppButton}</span>
         </button>
-      </article>
+      </div>
     </section>
   );
 }

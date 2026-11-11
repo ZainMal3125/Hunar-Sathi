@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan for adding the About & Limitations page (/about and third bottom tab) and auditing/fixing 360px layout issues, console errors, missing loading/error states, and Urdu/English text consistency.",
-  "updatedAt":  "2026-11-11T09:36:03.436577076Z",
+  "summary":  "Implementation plan for Firebase Authentication (Email/Password), role-based access control (user vs admin via users/{uid}), one-shop-per-user management at shops/{uid}, My Shop and Admin screens, and hardened Firestore security rules.",
+  "updatedAt":  "2026-11-11T11:25:30.242204537Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

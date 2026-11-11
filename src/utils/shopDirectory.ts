@@ -46,11 +46,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-1',
     ownerId: 'sample-owner-1',
+    ownerEmail: 'zainab.sample@hunarsaathi.pk',
+    name: 'SAMPLE: زینب ملتانی کڑھائی / Zainab Multani Embroidery',
     shopName: 'SAMPLE: زینب ملتانی کڑھائی / Zainab Multani Embroidery',
     skill: 'Embroidery (کڑھائی)',
     city: 'Multan',
     agreeToShareContact: false,
     whatsappNumber: '',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#8C2D19', '#C87D20', '#FAF6F0', 'floral')],
@@ -84,11 +87,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-2',
     ownerId: 'sample-owner-2',
+    ownerEmail: 'amina.sample@hunarsaathi.pk',
+    name: 'SAMPLE: آمنہ سلائی ہوم / Amina Home Stitching',
     shopName: 'SAMPLE: آمنہ سلائی ہوم / Amina Home Stitching',
     skill: 'Stitching (سلائی)',
     city: 'Lahore',
     agreeToShareContact: true,
     whatsappNumber: '03001112233',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#6E2212', '#C87D20', '#FAF6F0', 'stitch')],
@@ -122,11 +128,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-3',
     ownerId: 'sample-owner-3',
+    ownerEmail: 'maryam.sample@hunarsaathi.pk',
+    name: 'SAMPLE: مریم ہوم کچن / Maryam Home Kitchen',
     shopName: 'SAMPLE: مریم ہوم کچن / Maryam Home Kitchen',
     skill: 'Cooking (کھانا پکانا)',
     city: 'Karachi',
     agreeToShareContact: false,
     whatsappNumber: '',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#8C2D19', '#D99B4E', '#FAF6F0', 'cooking')],
@@ -160,11 +169,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-4',
     ownerId: 'sample-owner-4',
+    ownerEmail: 'sadaf.sample@hunarsaathi.pk',
+    name: 'SAMPLE: صدف دستکاری مرکز / Sadaf Handmade Crafts',
     shopName: 'SAMPLE: صدف دستکاری مرکز / Sadaf Handmade Crafts',
     skill: 'Crafts (دستکاری)',
     city: 'Peshawar',
     agreeToShareContact: true,
     whatsappNumber: '03214445566',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#78350F', '#C87D20', '#FAF6F0', 'craft')],
@@ -198,11 +210,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-5',
     ownerId: 'sample-owner-5',
+    ownerEmail: 'khadija.sample@hunarsaathi.pk',
+    name: 'SAMPLE: خدیجہ کشمیری ٹانکہ / Khadija Hand Embroidery',
     shopName: 'SAMPLE: خدیجہ کشمیری ٹانکہ / Khadija Hand Embroidery',
     skill: 'Embroidery (کڑھائی)',
     city: 'Rawalpindi',
     agreeToShareContact: false,
     whatsappNumber: '',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#8C2D19', '#B45309', '#FAF6F0', 'kashmiri')],
@@ -236,11 +251,14 @@ export const SAMPLE_SHOPS: ShopRecord[] = [
   {
     id: 'sample-shop-6',
     ownerId: 'sample-owner-6',
+    ownerEmail: 'hina.sample@hunarsaathi.pk',
+    name: 'SAMPLE: حنا بیکنگ اور مہندی / Hina Home Baking & Henna',
     shopName: 'SAMPLE: حنا بیکنگ اور مہندی / Hina Home Baking & Henna',
     skill: 'Other: Baking & Henna (بیکنگ اور مہندی)',
     city: 'Quetta',
     agreeToShareContact: true,
     whatsappNumber: '03337778899',
+    visible: true,
     isHidden: false,
     isSample: true,
     photos: [createSvgDataUrl('#6E2212', '#D99B4E', '#FAF6F0', 'henna')],
@@ -354,7 +372,7 @@ export function filterPublicShops(
   cityFilter: string
 ): ShopRecord[] {
   return shops.filter((shop) => {
-    if (shop.isHidden) {
+    if (shop.isHidden || shop.visible === false) {
       return false;
     }
     return (
@@ -367,7 +385,7 @@ export function filterPublicShops(
 export function getAvailableCities(shops: ShopRecord[]): string[] {
   const seen = new Map<string, string>();
   for (const shop of shops) {
-    if (shop.isHidden) continue;
+    if (shop.isHidden || shop.visible === false) continue;
     const clean = shop.city.trim();
     if (!clean) continue;
     const key = clean.toLowerCase();
@@ -398,7 +416,9 @@ export function mergeShopsWithSeededSamples(
   }
 
   // Return non-hidden shops with user-created shops first or sample shops clearly included
-  return Array.from(byId.values()).filter((s) => !s.isHidden);
+  return Array.from(byId.values()).filter(
+    (s) => !s.isHidden && s.visible !== false
+  );
 }
 
 export function findSampleShopById(shopId: string): ShopRecord | null {

@@ -1,3 +1,13 @@
+export type UserRole = 'user' | 'admin';
+
+export interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt?: unknown;
+}
+
 export interface ShopProductItem {
   name: string;
   description: string;
@@ -9,11 +19,14 @@ export interface ShopProductItem {
 export interface ShopRecord {
   id: string;
   ownerId: string;
+  ownerEmail?: string;
+  name: string;
   shopName: string;
   skill: string;
   city: string;
   agreeToShareContact: boolean;
   whatsappNumber: string;
+  visible: boolean;
   isHidden: boolean;
   isSample?: boolean;
   products: ShopProductItem[];
@@ -24,6 +37,7 @@ export interface ShopRecord {
 
 export interface SaveShopInput {
   shopName: string;
+  ownerEmail?: string;
   skill: string;
   city: string;
   agreeToShareContact: boolean;
@@ -34,6 +48,9 @@ export interface SaveShopInput {
 }
 
 export const MAX_SHOP_NAME_LENGTH = 120;
+export const MAX_USER_NAME_LENGTH = 120;
+export const MAX_EMAIL_LENGTH = 160;
+export const MIN_PASSWORD_LENGTH = 6;
 export const MAX_SKILL_LENGTH = 120;
 export const MAX_CITY_LENGTH = 100;
 export const MAX_WHATSAPP_LENGTH = 30;
@@ -86,6 +103,51 @@ export function validateSaveShopInput(input: SaveShopInput): {
   return { isValid: true };
 }
 
+export interface RegisterValidationInput {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export function validateRegisterInput(input: RegisterValidationInput): {
+  isValid: boolean;
+  errorKey?:
+    | 'nameEmpty'
+    | 'emailInvalid'
+    | 'passwordShort'
+    | 'passwordMismatch';
+} {
+  if (!input.name || input.name.trim().length === 0) {
+    return { isValid: false, errorKey: 'nameEmpty' };
+  }
+  const emailTrimmed = input.email.trim();
+  if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+    return { isValid: false, errorKey: 'emailInvalid' };
+  }
+  if (!input.password || input.password.length < MIN_PASSWORD_LENGTH) {
+    return { isValid: false, errorKey: 'passwordShort' };
+  }
+  if (input.password !== input.confirmPassword) {
+    return { isValid: false, errorKey: 'passwordMismatch' };
+  }
+  return { isValid: true };
+}
+
+export function validateLoginInput(email: string, password: string): {
+  isValid: boolean;
+  errorKey?: 'emailInvalid' | 'passwordShort';
+} {
+  const emailTrimmed = email.trim();
+  if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+    return { isValid: false, errorKey: 'emailInvalid' };
+  }
+  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+    return { isValid: false, errorKey: 'passwordShort' };
+  }
+  return { isValid: true };
+}
+
 export function prepareShopPayload(
   input: SaveShopInput,
   ownerId: string,
@@ -96,6 +158,8 @@ export function prepareShopPayload(
     input.whatsappNumber
   );
   const compactPhotos = input.photos.slice(0, 4);
+  const cleanShopName = input.shopName.trim().slice(0, MAX_SHOP_NAME_LENGTH);
+  const hiddenFlag = Boolean(isHidden);
 
   const sanitizedProducts: ShopProductItem[] = input.products
     .slice(0, 3)
@@ -115,16 +179,84 @@ export function prepareShopPayload(
 
   return {
     ownerId: ownerId.trim().slice(0, 128),
-    shopName: input.shopName.trim().slice(0, MAX_SHOP_NAME_LENGTH),
+    ...(input.ownerEmail
+      ? { ownerEmail: input.ownerEmail.trim().slice(0, MAX_EMAIL_LENGTH) }
+      : {}),
+    name: cleanShopName,
+    shopName: cleanShopName,
     skill: input.skill.trim().slice(0, MAX_SKILL_LENGTH),
     city: input.city.trim().slice(0, MAX_CITY_LENGTH),
     agreeToShareContact: Boolean(input.agreeToShareContact),
     whatsappNumber: sanitizedWhatsapp,
-    isHidden: Boolean(isHidden),
+    visible: !hiddenFlag,
+    isHidden: hiddenFlag,
     ...(typeof input.isSample === 'boolean' ? { isSample: input.isSample } : {}),
     products: sanitizedProducts,
     photos: compactPhotos,
   };
+}
+
+export function normalizeShopRecord(
+  id: string,
+  raw: Partial<ShopRecord> & Record<string, unknown>
+): ShopRecord {
+  const resolvedName =
+    (typeof raw.name === 'string' && raw.name.trim()) ||
+    (typeof raw.shopName === 'string' && raw.shopName.trim()) ||
+    'Shop';
+  const isHidden =
+    typeof raw.isHidden === 'boolean'
+      ? raw.isHidden
+      : typeof raw.visible === 'boolean'
+      ? !raw.visible
+      : false;
+  const visible = !isHidden;
+
+  return {
+    id,
+    ownerId: typeof raw.ownerId === 'string' ? raw.ownerId : id,
+    ...(typeof raw.ownerEmail === 'string' ? { ownerEmail: raw.ownerEmail } : {}),
+    name: resolvedName,
+    shopName: resolvedName,
+    skill: typeof raw.skill === 'string' ? raw.skill : '',
+    city: typeof raw.city === 'string' ? raw.city : '',
+    agreeToShareContact: Boolean(raw.agreeToShareContact),
+    whatsappNumber:
+      typeof raw.whatsappNumber === 'string' ? raw.whatsappNumber : '',
+    visible,
+    isHidden,
+    ...(typeof raw.isSample === 'boolean' ? { isSample: raw.isSample } : {}),
+    products: Array.isArray(raw.products)
+      ? (raw.products as ShopProductItem[])
+      : [],
+    photos: Array.isArray(raw.photos) ? (raw.photos as string[]) : [],
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+}
+
+export function canUserManageShop(
+  shop: Pick<ShopRecord, 'ownerId' | 'id'>,
+  currentUserId: string | null | undefined,
+  role?: UserRole | null
+): boolean {
+  if (!currentUserId) {
+    return false;
+  }
+  if (role === 'admin') {
+    return true;
+  }
+  return shop.ownerId === currentUserId || shop.id === currentUserId;
+}
+
+export function isOwnerOfShop(
+  shop: Pick<ShopRecord, 'ownerId' | 'id'>,
+  currentUserId: string | null | undefined
+): boolean {
+  if (!currentUserId) {
+    return false;
+  }
+  return shop.ownerId === currentUserId || shop.id === currentUserId;
 }
 
 export function compressDataUrlForFirestore(
@@ -182,10 +314,10 @@ export function parseShopIdFromLocation(
 }
 
 export function isDirectoryPath(pathname: string, hash: string): boolean {
-  if (/^\/directory\/?$/.test(pathname)) {
+  if (/^\/(directory|shops|browse)\/?$/.test(pathname)) {
     return true;
   }
-  if (/^#\/?directory\/?$/.test(hash)) {
+  if (/^#\/?(directory|shops|browse|public-shops)\/?$/.test(hash)) {
     return true;
   }
   return false;
@@ -201,5 +333,32 @@ export function isAboutPath(pathname: string, hash: string): boolean {
   return false;
 }
 
+export function isMyShopPath(pathname: string, hash: string): boolean {
+  if (/^\/my-shop\/?$/.test(pathname)) {
+    return true;
+  }
+  if (/^#\/?my-shop\/?$/.test(hash)) {
+    return true;
+  }
+  return false;
+}
 
+export function isAdminPath(pathname: string, hash: string): boolean {
+  if (/^\/admin\/?$/.test(pathname)) {
+    return true;
+  }
+  if (/^#\/?admin\/?$/.test(hash)) {
+    return true;
+  }
+  return false;
+}
 
+export function isAuthPath(pathname: string, hash: string): boolean {
+  if (/^\/(login|register|auth)\/?$/.test(pathname)) {
+    return true;
+  }
+  if (/^#\/?(login|register|auth)\/?$/.test(hash)) {
+    return true;
+  }
+  return false;
+}

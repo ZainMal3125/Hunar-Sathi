@@ -1,5 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  User,
+} from 'firebase/auth';
 import {
   collection,
   deleteDoc,
@@ -23,14 +31,21 @@ import {
 } from './utils/shopDirectory';
 import {
   compressDataUrlForFirestore,
+  MAX_EMAIL_LENGTH,
+  MAX_USER_NAME_LENGTH,
+  normalizeShopRecord,
   prepareShopPayload,
   SaveShopInput,
   ShopRecord,
+  UserProfile,
 } from './utils/shopManager';
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+export { onAuthStateChanged };
+export type { User };
 
 export enum OperationType {
   CREATE = 'create',
@@ -101,40 +116,126 @@ if (typeof window !== 'undefined') {
   testConnection();
 }
 
-const LOCAL_OWNER_ID_KEY = 'hunar_saathi_owner_id';
-
-export function getOrCreateOwnerId(): string {
-  if (auth.currentUser?.uid) {
-    return auth.currentUser.uid;
-  }
-  if (typeof window === 'undefined') {
-    return 'owner-server';
-  }
+export async function getUserProfileFromFirestore(
+  uid: string,
+  fallbackEmail?: string | null,
+  fallbackName?: string | null
+): Promise<UserProfile> {
+  const path = `users/${uid}`;
   try {
-    const existing = window.localStorage.getItem(LOCAL_OWNER_ID_KEY);
-    if (existing && /^[a-zA-Z0-9_-]{1,128}$/.test(existing)) {
-      return existing;
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (snap.exists()) {
+      const data = snap.data() as Record<string, unknown>;
+      return {
+        uid,
+        name:
+          typeof data.name === 'string' && data.name.trim()
+            ? data.name
+            : fallbackName || 'User',
+        email:
+          typeof data.email === 'string' && data.email.trim()
+            ? data.email
+            : fallbackEmail || '',
+        role: data.role === 'admin' ? 'admin' : 'user',
+        createdAt: data.createdAt,
+      };
     }
-    const generated = `artisan-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 10)}`;
-    window.localStorage.setItem(LOCAL_OWNER_ID_KEY, generated);
-    return generated;
-  } catch {
-    return `artisan-${Date.now()}`;
+
+    // Create default "user" profile if missing
+    const cleanName = (
+      fallbackName ||
+      fallbackEmail?.split('@')[0] ||
+      'Artisan'
+    )
+      .trim()
+      .slice(0, MAX_USER_NAME_LENGTH);
+    const cleanEmail = (fallbackEmail || 'user@example.com')
+      .trim()
+      .slice(0, MAX_EMAIL_LENGTH);
+
+    await setDoc(doc(db, 'users', uid), {
+      name: cleanName,
+      email: cleanEmail,
+      role: 'user',
+      createdAt: serverTimestamp(),
+    });
+
+    return {
+      uid,
+      name: cleanName,
+      email: cleanEmail,
+      role: 'user',
+    };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
   }
 }
 
-export function generateShopId(): string {
-  return `shop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export async function registerUserWithEmail(
+  name: string,
+  email: string,
+  password: string
+): Promise<UserProfile> {
+  const cleanName = name.trim().slice(0, MAX_USER_NAME_LENGTH);
+  const cleanEmail = email.trim().slice(0, MAX_EMAIL_LENGTH);
+
+  const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+  try {
+    await updateProfile(cred.user, { displayName: cleanName });
+  } catch {
+    // Non-fatal profile display name update
+  }
+
+  const path = `users/${cred.user.uid}`;
+  try {
+    // Strictly set role to "user". Never allow client registration to set any other role.
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      name: cleanName,
+      email: cleanEmail,
+      role: 'user',
+      createdAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+  }
+
+  return {
+    uid: cred.user.uid,
+    name: cleanName,
+    email: cleanEmail,
+    role: 'user',
+  };
+}
+
+export async function loginUserWithEmail(
+  email: string,
+  password: string
+): Promise<UserProfile> {
+  const cleanEmail = email.trim();
+  const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+  return getUserProfileFromFirestore(
+    cred.user.uid,
+    cred.user.email,
+    cred.user.displayName
+  );
+}
+
+export async function logoutUser(): Promise<void> {
+  await signOut(auth);
 }
 
 export async function saveShopToFirestore(
   input: SaveShopInput,
   existingShopId?: string | null
 ): Promise<ShopRecord> {
-  const shopId = existingShopId || generateShopId();
-  const ownerId = getOrCreateOwnerId();
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('AUTH_REQUIRED');
+  }
+
+  // One shop per user: store at shops/{uid} (where document id equals owner's uid)
+  const targetShopId = existingShopId || currentUser.uid;
+  const path = `shops/${targetShopId}`;
 
   const compressedPhotos = await Promise.all(
     input.photos.slice(0, 4).map((dataUrl) => compressDataUrlForFirestore(dataUrl))
@@ -157,32 +258,56 @@ export async function saveShopToFirestore(
     })
   );
 
+  let existingSnap;
+  try {
+    existingSnap = await getDoc(doc(db, 'shops', targetShopId));
+  } catch {
+    existingSnap = null;
+  }
+
+  const alreadyExists = Boolean(existingSnap && existingSnap.exists());
+  const existingData = alreadyExists
+    ? (existingSnap!.data() as Partial<ShopRecord>)
+    : null;
+
+  const ownerId = existingData?.ownerId || currentUser.uid;
+  const ownerEmail =
+    input.ownerEmail ||
+    existingData?.ownerEmail ||
+    currentUser.email ||
+    undefined;
+  const currentHidden =
+    typeof existingData?.isHidden === 'boolean' ? existingData.isHidden : false;
+
   const payload = prepareShopPayload(
     {
       ...input,
+      ownerEmail,
       photos: compressedPhotos,
       products: compressedProducts,
     },
     ownerId,
-    false
+    currentHidden
   );
 
-  const path = `shops/${shopId}`;
   try {
-    if (existingShopId) {
-      await updateDoc(doc(db, 'shops', shopId), {
+    if (alreadyExists) {
+      await updateDoc(doc(db, 'shops', targetShopId), {
+        name: payload.name,
         shopName: payload.shopName,
+        ...(payload.ownerEmail ? { ownerEmail: payload.ownerEmail } : {}),
         skill: payload.skill,
         city: payload.city,
         agreeToShareContact: payload.agreeToShareContact,
         whatsappNumber: payload.whatsappNumber,
+        visible: payload.visible,
         isHidden: payload.isHidden,
         products: payload.products,
         photos: payload.photos,
         updatedAt: serverTimestamp(),
       });
     } else {
-      await setDoc(doc(db, 'shops', shopId), {
+      await setDoc(doc(db, 'shops', targetShopId), {
         ...payload,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -191,15 +316,33 @@ export async function saveShopToFirestore(
   } catch (error) {
     handleFirestoreError(
       error,
-      existingShopId ? OperationType.UPDATE : OperationType.CREATE,
+      alreadyExists ? OperationType.UPDATE : OperationType.CREATE,
       path
     );
   }
 
   return {
-    id: shopId,
+    id: targetShopId,
     ...payload,
   };
+}
+
+export async function getMyShopFromFirestore(
+  uid: string
+): Promise<ShopRecord | null> {
+  const path = `shops/${uid}`;
+  try {
+    const snap = await getDoc(doc(db, 'shops', uid));
+    if (!snap.exists()) {
+      return null;
+    }
+    return normalizeShopRecord(
+      snap.id,
+      snap.data() as Partial<ShopRecord> & Record<string, unknown>
+    );
+  } catch (error) {
+    handleFirestoreError(error, OperationType.GET, path);
+  }
 }
 
 export async function getShopFromFirestore(
@@ -211,46 +354,17 @@ export async function getShopFromFirestore(
     if (!snap.exists()) {
       return findSampleShopById(shopId);
     }
-    const data = snap.data() as Omit<ShopRecord, 'id'>;
-    return {
-      id: snap.id,
-      ...data,
-    };
-  } catch (error) {
+    return normalizeShopRecord(
+      snap.id,
+      snap.data() as Partial<ShopRecord> & Record<string, unknown>
+    );
+  } catch {
     const sampleFallback = findSampleShopById(shopId);
     if (sampleFallback) {
       return sampleFallback;
     }
-    handleFirestoreError(error, OperationType.GET, path);
+    return null;
   }
-}
-
-export async function seedSampleShopsInFirestore(
-  existingIds: Set<string>
-): Promise<void> {
-  const missingSamples = SAMPLE_SHOPS.filter((s) => !existingIds.has(s.id));
-  await Promise.all(
-    missingSamples.map(async (sample) => {
-      try {
-        await setDoc(doc(db, 'shops', sample.id), {
-          ownerId: sample.ownerId,
-          shopName: sample.shopName,
-          skill: sample.skill,
-          city: sample.city,
-          agreeToShareContact: sample.agreeToShareContact,
-          whatsappNumber: sample.whatsappNumber,
-          isHidden: false,
-          isSample: true,
-          products: sample.products,
-          photos: sample.photos,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      } catch {
-        // Ignore background seed errors
-      }
-    })
-  );
 }
 
 export async function listPublicShopsFromFirestore(): Promise<ShopRecord[]> {
@@ -262,15 +376,41 @@ export async function listPublicShopsFromFirestore(): Promise<ShopRecord[]> {
       limit(50)
     );
     const snap = await getDocs(publicQuery);
-    const firestoreShops: ShopRecord[] = snap.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<ShopRecord, 'id'>),
-    }));
-
-    const existingIds = new Set(firestoreShops.map((s) => s.id));
-    void seedSampleShopsInFirestore(existingIds);
+    const firestoreShops: ShopRecord[] = snap.docs.map((docSnap) =>
+      normalizeShopRecord(
+        docSnap.id,
+        docSnap.data() as Partial<ShopRecord> & Record<string, unknown>
+      )
+    );
 
     return mergeShopsWithSeededSamples(firestoreShops);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, path);
+  }
+}
+
+export async function listAllShopsForAdminFromFirestore(): Promise<ShopRecord[]> {
+  const path = 'shops';
+  try {
+    const allQuery = query(collection(db, 'shops'), limit(100));
+    const snap = await getDocs(allQuery);
+    const firestoreShops: ShopRecord[] = snap.docs.map((docSnap) =>
+      normalizeShopRecord(
+        docSnap.id,
+        docSnap.data() as Partial<ShopRecord> & Record<string, unknown>
+      )
+    );
+
+    const byId = new Map<string, ShopRecord>();
+    for (const shop of firestoreShops) {
+      byId.set(shop.id, shop);
+    }
+    for (const sample of SAMPLE_SHOPS) {
+      if (!byId.has(sample.id)) {
+        byId.set(sample.id, sample);
+      }
+    }
+    return Array.from(byId.values());
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, path);
   }
@@ -281,9 +421,11 @@ export async function updateShopVisibilityInFirestore(
   isHidden: boolean
 ): Promise<void> {
   const path = `shops/${shopId}`;
+  const hiddenFlag = Boolean(isHidden);
   try {
     await updateDoc(doc(db, 'shops', shopId), {
-      isHidden,
+      visible: !hiddenFlag,
+      isHidden: hiddenFlag,
       updatedAt: serverTimestamp(),
     });
   } catch (error) {
