@@ -6,9 +6,9 @@ export interface RouteDefinition {
 }
 
 export const ROUTES: RouteDefinition[] = [
-  { id: 'welcome', path: '#welcome' },
-  { id: 'skills', path: '#skills' },
-  { id: 'guide', path: '#guide' },
+  { id: 'welcome', path: '#home' },
+  { id: 'skills', path: '#create' },
+  { id: 'guide', path: '#how-it-works' },
 ];
 
 export const DEFAULT_SCREEN: ScreenId = 'welcome';
@@ -19,11 +19,18 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
     return 'skills';
   }
   const cleanHash = hash.replace(/^#\/?/, '');
-  if (cleanHash === 'about') {
+  if (cleanHash === 'create' || cleanHash === 'skills') {
+    return 'skills';
+  }
+  if (
+    cleanHash === 'how-it-works' ||
+    cleanHash === 'about' ||
+    cleanHash === 'guide'
+  ) {
     return 'guide';
   }
-  if (cleanHash === 'welcome' || cleanHash === 'skills' || cleanHash === 'guide') {
-    return cleanHash;
+  if (cleanHash === 'home' || cleanHash === 'welcome') {
+    return 'welcome';
   }
   return DEFAULT_SCREEN;
 }
@@ -31,4 +38,5 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
 export function getNextScreenOnStart(): ScreenId {
   return 'skills';
 }
+
 

@@ -192,13 +192,14 @@ export function isDirectoryPath(pathname: string, hash: string): boolean {
 }
 
 export function isAboutPath(pathname: string, hash: string): boolean {
-  if (/^\/about\/?$/.test(pathname)) {
+  if (/^\/(about|how-it-works)\/?$/.test(pathname)) {
     return true;
   }
-  if (/^#\/?about\/?$/.test(hash)) {
+  if (/^#\/?(about|how-it-works)\/?$/.test(hash)) {
     return true;
   }
   return false;
 }
+
 
 

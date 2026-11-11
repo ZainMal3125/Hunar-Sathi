@@ -1,17 +1,23 @@
-import { Compass, Home, Layers } from 'lucide-react';
+import { Compass, Home, PlusCircle } from 'lucide-react';
 import { ScreenId, TranslationContent } from '../i18n/translations';
 import { ROUTES } from '../navigation/routes';
 
 interface BottomNavProps {
-  activeScreen: ScreenId;
+  activeScreen: ScreenId | null;
   content: TranslationContent;
   onNavigate: (screen: ScreenId) => void;
 }
 
 const ICONS: Record<ScreenId, typeof Home> = {
   welcome: Home,
-  skills: Layers,
+  skills: PlusCircle,
   guide: Compass,
+};
+
+const TAB_IDS: Record<ScreenId, string> = {
+  welcome: 'nav-tab-home',
+  skills: 'nav-tab-create',
+  guide: 'nav-tab-how-it-works',
 };
 
 export function BottomNav({
@@ -22,22 +28,25 @@ export function BottomNav({
   return (
     <nav
       aria-label={content.navAriaLabel}
-      className="w-full border-t border-[var(--color-border)] bg-[var(--color-canvas)]"
+      className="sticky bottom-0 z-20 w-full border-t border-[var(--color-border)] bg-[var(--color-canvas)]"
     >
-      <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 px-4 py-2.5 sm:px-6">
+      <div className="mx-auto grid w-full max-w-[500px] grid-cols-3 gap-2 px-3 py-2.5 sm:px-5">
         {ROUTES.map((route) => {
           const Icon = ICONS[route.id];
           const isActive = activeScreen === route.id;
+          const tabId = TAB_IDS[route.id];
           return (
             <button
               key={route.id}
+              id={tabId}
+              data-testid={tabId}
               type="button"
               onClick={() => onNavigate(route.id)}
               aria-current={isActive ? 'page' : undefined}
-              className={`flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] ${
+              className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] ${
                 isActive
-                  ? 'bg-[var(--color-surface)] text-[var(--color-primary)] font-bold'
-                  : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)] font-medium'
+                  ? 'border border-[var(--color-primary)]/30 bg-[var(--color-surface)] text-[var(--color-primary)] font-bold shadow-2xs'
+                  : 'border border-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/60 hover:text-[var(--color-text)] font-medium'
               }`}
             >
               <Icon
@@ -48,7 +57,7 @@ export function BottomNav({
                     : 'text-[var(--color-text-muted)] stroke-[1.75]'
                 }`}
               />
-              <span className="text-sm leading-normal">
+              <span className="text-sm leading-tight">
                 {content.nav[route.id]}
               </span>
             </button>
@@ -58,3 +67,4 @@ export function BottomNav({
     </nav>
   );
 }
+

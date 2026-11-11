@@ -75,7 +75,7 @@ export function ShopDirectoryScreen({
     <section
       aria-labelledby="directory-heading"
       data-testid="shop-directory-page"
-      className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14"
+      className="mx-auto flex w-full max-w-[500px] flex-1 flex-col gap-6 px-5 py-7 sm:px-6 sm:py-9"
     >
       {/* Header */}
       <div className="flex flex-col gap-3">
@@ -116,7 +116,7 @@ export function ShopDirectoryScreen({
       {/* Filters for Skill and City */}
       <div
         data-testid="directory-filters"
-        className="grid grid-cols-1 gap-4 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:grid-cols-2 sm:p-6"
+        className="grid grid-cols-1 gap-4 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
       >
         {/* Skill Filter */}
         <div className="flex flex-col gap-2">
@@ -230,7 +230,7 @@ export function ShopDirectoryScreen({
       ) : (
         <div
           data-testid="directory-shops-grid"
-          className="grid grid-cols-1 gap-6 md:grid-cols-2"
+          className="grid grid-cols-1 gap-5"
         >
           {filteredShops.map((shop) => {
             const sample = isSampleShop(shop);

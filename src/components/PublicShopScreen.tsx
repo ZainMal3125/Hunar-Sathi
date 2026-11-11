@@ -115,7 +115,7 @@ export function PublicShopScreen({
       <section
         role="status"
         data-testid="public-shop-loading"
-        className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16 text-center"
+        className="mx-auto flex w-full max-w-[500px] flex-1 flex-col items-center justify-center px-6 py-16 text-center"
       >
         <Loader2
           aria-hidden="true"
@@ -132,7 +132,7 @@ export function PublicShopScreen({
     return (
       <section
         data-testid="public-shop-not-found"
-        className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16 text-center"
+        className="mx-auto flex w-full max-w-[500px] flex-1 flex-col items-center justify-center px-6 py-16 text-center"
       >
         <div
           aria-hidden="true"
@@ -150,7 +150,7 @@ export function PublicShopScreen({
           type="button"
           id="public-shop-back-btn"
           onClick={onBackToApp}
-          className="flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-lg font-bold text-white whitespace-nowrap"
+          className="flex min-h-[58px] items-center justify-center gap-3 rounded-2xl bg-[var(--color-primary)] px-8 py-4 text-center text-lg font-bold text-white"
         >
           <span>{labels.backToAppButton}</span>
         </button>
@@ -167,7 +167,7 @@ export function PublicShopScreen({
     <section
       aria-labelledby="public-shop-heading"
       data-testid="public-shop-page"
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14"
+      className="mx-auto flex w-full max-w-[500px] flex-1 flex-col gap-6 px-5 py-7 sm:px-6 sm:py-9"
     >
       {/* Hidden State Notice */}
       {shop.isHidden ? (

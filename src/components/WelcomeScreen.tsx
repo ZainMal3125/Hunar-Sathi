@@ -12,7 +12,8 @@ export function WelcomeScreen({ content, onStart }: WelcomeScreenProps) {
   return (
     <section
       aria-labelledby="welcome-heading"
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12 text-center sm:px-10 sm:py-16"
+      data-testid="home-screen"
+      className="mx-auto flex w-full max-w-[500px] flex-1 flex-col items-center justify-center px-6 py-12 text-center sm:px-7 sm:py-14"
     >
       {/* Warm handcrafted geometric stitch emblem */}
       <div

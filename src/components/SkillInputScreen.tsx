@@ -26,6 +26,7 @@ interface SkillInputScreenProps {
   formState: SkillFormState;
   onChange: (nextState: SkillFormState) => void;
   onContinue: () => void;
+  onBackToHome: () => void;
 }
 
 const SKILL_ICONS: Record<SkillOptionId, typeof Scissors> = {
@@ -41,6 +42,7 @@ export function SkillInputScreen({
   formState,
   onChange,
   onContinue,
+  onBackToHome,
 }: SkillInputScreenProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
@@ -48,6 +50,7 @@ export function SkillInputScreen({
 
   const isRtl = content.dir === 'rtl';
   const labels = content.skillInput;
+  const flowLabels = content.createFlow;
   const isValid = isSkillFormValid(formState) && !isCompressing;
   const remainingSlots = MAX_PHOTOS - formState.photos.length;
 
@@ -105,12 +108,70 @@ export function SkillInputScreen({
   return (
     <section
       aria-labelledby="skill-input-heading"
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-5 py-8 sm:px-8 sm:py-12"
+      data-testid="create-step-1-screen"
+      className="mx-auto flex w-full max-w-[500px] flex-1 flex-col px-5 py-7 sm:px-6 sm:py-9"
     >
-      <div className="mb-8">
+      {/* Top Back to Home & Step Progress Indicator */}
+      <div className="mb-6 flex flex-col gap-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <button
+            type="button"
+            id="skill-back-home-btn"
+            data-testid="skill-back-home-btn"
+            onClick={onBackToHome}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2 text-sm font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
+          >
+            {isRtl ? (
+              <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+            ) : (
+              <ArrowLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+            )}
+            <span>{flowLabels.backToHomeButton}</span>
+          </button>
+
+          <span
+            data-testid="create-progress-indicator"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-1.5 text-sm font-bold text-[var(--color-accent)] tabular-nums"
+          >
+            {flowLabels.stepIndicator(1, 3)}
+          </span>
+        </div>
+
+        {/* 3-Step Visual Progress Bar & Labels */}
+        <div
+          aria-label={flowLabels.stepIndicator(1, 3)}
+          className="grid grid-cols-3 gap-2"
+        >
+          {flowLabels.steps.map((stepTitle, idx) => {
+            const isCurrent = idx === 0;
+            return (
+              <div key={stepTitle} className="flex flex-col gap-1.5">
+                <div
+                  className={`h-2 w-full rounded-full transition-colors ${
+                    isCurrent
+                      ? 'bg-[var(--color-primary)]'
+                      : 'bg-[var(--color-border)]'
+                  }`}
+                />
+                <span
+                  className={`text-xs leading-snug ${
+                    isCurrent
+                      ? 'font-bold text-[var(--color-primary)]'
+                      : 'font-medium text-[var(--color-text-muted)]'
+                  }`}
+                >
+                  {idx + 1}. {stepTitle}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mb-7">
         <h1
           id="skill-input-heading"
-          className="mb-3 text-3xl font-bold tracking-tight text-[var(--color-primary)] sm:text-4xl text-balance"
+          className="mb-2.5 text-3xl font-bold tracking-tight text-[var(--color-primary)] text-balance"
         >
           {labels.heading}
         </h1>
@@ -119,14 +180,14 @@ export function SkillInputScreen({
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-8" noValidate>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-7" noValidate>
         {/* 1. Skill Selection */}
-        <fieldset className="flex flex-col gap-4">
-          <legend className="mb-3 text-xl font-bold text-[var(--color-text)]">
+        <fieldset className="flex flex-col gap-3.5">
+          <legend className="mb-2.5 text-xl font-bold text-[var(--color-text)]">
             {labels.skillSectionLabel}
           </legend>
 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3">
             {SKILL_OPTION_IDS.map((optionId) => {
               const isSelected = formState.skillId === optionId;
               const Icon = SKILL_ICONS[optionId];

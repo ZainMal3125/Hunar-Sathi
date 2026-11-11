@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import {
   AlertCircle,
+  ArrowLeft,
+  ArrowRight,
   Check,
   CheckCircle2,
   Copy,
+  Home,
   Loader2,
   MessageCircle,
   RefreshCw,
@@ -41,6 +44,8 @@ interface NextStepScreenProps {
   onOpenPublicShop: (shopId: string) => void;
   onRetry: () => void;
   onStartOver: () => void;
+  onBackToStep1: () => void;
+  onBackToHome: () => void;
 }
 
 interface SavedProductPriceState {
@@ -59,12 +64,19 @@ export function NextStepScreen({
   onOpenPublicShop,
   onRetry,
   onStartOver,
+  onBackToStep1,
+  onBackToHome,
 }: NextStepScreenProps) {
   const [copied, setCopied] = useState(false);
   const [savedPrices, setSavedPrices] = useState<
     Record<number, SavedProductPriceState>
   >({});
   const labels = content.nextStep;
+  const flowLabels = content.createFlow;
+  const isRtl = content.dir === 'rtl';
+
+  const hasSavedAnyPrice = Object.keys(savedPrices).length > 0;
+  const currentStepNumber = savedShop || hasSavedAnyPrice ? 3 : 2;
 
   const resolvedSkill = getResolvedSkillDisplay(formState, content);
   const allPhotoUrls = formState.photos.map((p) => p.dataUrl);
@@ -124,8 +136,83 @@ export function NextStepScreen({
   return (
     <section
       aria-labelledby="next-step-heading"
-      className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-10 sm:px-8 sm:py-14"
+      data-testid="create-results-screen"
+      className="mx-auto flex w-full max-w-[500px] flex-1 flex-col justify-center px-5 py-7 sm:px-6 sm:py-9"
     >
+      {/* Top Back / Home Navigation & Step Progress Indicator */}
+      <div className="mb-6 flex flex-col gap-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              id="results-back-step1-btn"
+              data-testid="results-back-step1-btn"
+              onClick={onBackToStep1}
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-border)]"
+            >
+              {isRtl ? (
+                <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" />
+              ) : (
+                <ArrowLeft aria-hidden="true" className="h-4 w-4 shrink-0" />
+              )}
+              <span>{flowLabels.backToStep1Button}</span>
+            </button>
+
+            <button
+              type="button"
+              id="results-back-home-btn"
+              data-testid="results-back-home-btn"
+              onClick={onBackToHome}
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-bold text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-border)] hover:text-[var(--color-primary)]"
+            >
+              <Home aria-hidden="true" className="h-4 w-4 shrink-0" />
+              <span>{content.nav.welcome}</span>
+            </button>
+          </div>
+
+          <span
+            data-testid="create-progress-indicator"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-1.5 text-sm font-bold text-[var(--color-accent)] tabular-nums"
+          >
+            {flowLabels.stepIndicator(currentStepNumber, 3)}
+          </span>
+        </div>
+
+        {/* 3-Step Visual Progress Bar & Labels */}
+        <div
+          aria-label={flowLabels.stepIndicator(currentStepNumber, 3)}
+          className="grid grid-cols-3 gap-2"
+        >
+          {flowLabels.steps.map((stepTitle, idx) => {
+            const stepNum = idx + 1;
+            const isCompletedOrCurrent = stepNum <= currentStepNumber;
+            const isCurrent = stepNum === currentStepNumber;
+            return (
+              <div key={stepTitle} className="flex flex-col gap-1.5">
+                <div
+                  className={`h-2 w-full rounded-full transition-colors ${
+                    isCompletedOrCurrent
+                      ? 'bg-[var(--color-primary)]'
+                      : 'bg-[var(--color-border)]'
+                  }`}
+                />
+                <span
+                  className={`text-xs leading-snug ${
+                    isCurrent
+                      ? 'font-bold text-[var(--color-primary)]'
+                      : isCompletedOrCurrent
+                      ? 'font-semibold text-[var(--color-accent)]'
+                      : 'font-medium text-[var(--color-text-muted)]'
+                  }`}
+                >
+                  {stepNum}. {stepTitle}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Loading State */}
       {isLoading && (
         <div

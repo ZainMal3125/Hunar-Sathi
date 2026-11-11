@@ -133,7 +133,30 @@ export interface AboutLimitationItem {
   description: string;
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface CreateFlowTranslations {
+  stepIndicator: (current: number, total: number) => string;
+  steps: [string, string, string];
+  backToHomeButton: string;
+  backToStep1Button: string;
+}
+
 export interface AboutLimitationsTranslations {
+  pageHeading: string;
+  pageSubtitle: string;
+  stepsHeading: string;
+  steps: [
+    AboutLimitationItem,
+    AboutLimitationItem,
+    AboutLimitationItem,
+    AboutLimitationItem,
+  ];
+  faqHeading: string;
+  faqs: [FaqItem, FaqItem, FaqItem, FaqItem];
   heading: string;
   subtitle: string;
   items: [
@@ -142,6 +165,7 @@ export interface AboutLimitationsTranslations {
     AboutLimitationItem,
     AboutLimitationItem,
   ];
+  startCreatingButton: string;
   browseDirectoryButton: string;
   backButton: string;
 }
@@ -205,6 +229,7 @@ export interface TranslationContent {
   publicShop: PublicShopTranslations;
   directory: DirectoryTranslations;
   aboutLimitations: AboutLimitationsTranslations;
+  createFlow: CreateFlowTranslations;
   screens: {
     skills: {
       title: string;
@@ -234,9 +259,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     englishLabel: 'English',
     navAriaLabel: 'بنیادی نیویگیشن',
     nav: {
-      welcome: 'خوش آمدید',
-      skills: 'ہنر',
-      guide: 'رہنمائی',
+      welcome: 'ہوم',
+      skills: 'بنائیں',
+      guide: 'طریقۂ کار',
     },
     skillInput: {
       heading: 'اپنے ہنر اور کام کی تفصیل بتائیں',
@@ -404,7 +429,56 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       retryButton: 'دوبارہ کوشش کریں',
     },
     aboutLimitations: {
-      heading: 'تعارف اور حدود',
+      pageHeading: 'طریقۂ کار',
+      pageSubtitle:
+        'ہنر ساتھی آپ کو گھر بیٹھے اپنے ہنر سے کاروبار شروع کرنے میں کس طرح مدد دیتا ہے:',
+      stepsHeading: '4 آسان مراحل',
+      steps: [
+        {
+          title: '1. اپنا ہنر، شہر اور تصاویر شامل کریں',
+          description:
+            'اپنا بنیادی ہنر منتخب کریں، شہر لکھیں اور اپنے ہاتھ سے بنے کام کی 1 سے 4 صاف تصاویر اپ لوڈ کریں۔',
+        },
+        {
+          title: '2. مصنوعات کے آئیڈیاز اور واٹس ایپ پیغام حاصل کریں',
+          description:
+            'آپ کی تصاویر اور شہر کے مطابق 3 موزوں مصنوعات، ممکنہ خریدار اور اردو میں تیار واٹس ایپ تعارفی پیغام حاصل کریں۔',
+        },
+        {
+          title: '3. اپنے اخراجات سے مناسب قیمت نکالیں',
+          description:
+            'اپنے سامان کی لاگت، کام کے گھنٹے، فی گھنٹہ محنت اور منافع درج کر کے ہر چیز کی منصفانہ قیمت خود نکالیں۔',
+        },
+        {
+          title: '4. پہلے ہفتے کا منصوبہ اور آن لائن دکان',
+          description:
+            '7 دن کی عملی فہرست پر عمل کریں اور چاہیں تو اپنی عوامی آن لائن دکان محفوظ کر کے لنک شیئر کریں۔',
+        },
+      ],
+      faqHeading: 'عام سوالات (FAQ)',
+      faqs: [
+        {
+          question: 'کیا میرا رابطہ نمبر سب کو نظر آئے گا؟',
+          answer:
+            'نہیں۔ آپ کا واٹس ایپ نمبر خفیہ رہتا ہے اور صرف تب دکھایا جاتا ہے جب آپ خود رضامندی کے خانے پر نشان لگاتی ہیں۔',
+        },
+        {
+          question: 'کیا تجویز کردہ قیمتیں درست ہوتی ہیں؟',
+          answer:
+            'قیمتیں کوئی اندازہ نہیں بلکہ آپ کے اپنے درج کردہ سامان کے خرچ، کام کے گھنٹوں اور منافع کے تناسب سے حساب کی جاتی ہیں۔',
+        },
+        {
+          question: 'کیا یہ سروس مفت ہے؟',
+          answer:
+            'جی ہاں، ہنر ساتھی کا استعمال، کاروباری رہنمائی، قیمتوں کا حساب اور آن لائن دکان بنانا بالکل مفت ہے۔',
+        },
+        {
+          question: 'کیا میں بعد میں اپنی دکان چھپا یا ختم کر سکتی ہوں؟',
+          answer:
+            'جی ہاں۔ آپ کسی بھی وقت اپنی دکان کو عارضی طور پر چھپا سکتی ہیں یا مستقل طور پر حذف کر سکتی ہیں۔',
+        },
+      ],
+      heading: 'مصنوعی ذہانت (AI) اور حدود',
       subtitle: 'ہنر ساتھی کے استعمال اور اصولوں کے بارے میں اہم معلومات:',
       items: [
         {
@@ -427,19 +501,27 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
           description: 'یہ ایپ ایک ابتدائی نمونہ (پروٹوٹائپ) ہے۔',
         },
       ],
+      startCreatingButton: 'ابھی بنانا شروع کریں',
       browseDirectoryButton: 'عوامی دکانوں کی ڈائریکٹری دیکھیں',
-      backButton: 'واپس خوش آمدید اسکرین پر',
+      backButton: 'واپس ہوم پر',
+    },
+    createFlow: {
+      stepIndicator: (current: number, total: number) =>
+        `مرحلہ ${current} از ${total}`,
+      steps: ['ہنر اور تصاویر', 'رہنمائی اور قیمت', 'منصوبہ اور دکان'],
+      backToHomeButton: 'واپس ہوم پر',
+      backToStep1Button: 'مرحلہ 1 پر واپس جائیں',
     },
     screens: {
       skills: {
         title: 'ہنر کا انتخاب',
         description: 'یہ حصہ اگلے مرحلے میں آپ کے ہنر کی تفصیلات کے لیے تیار ہے۔',
-        backButton: 'واپس خوش آمدید اسکرین پر',
+        backButton: 'واپس ہوم پر',
       },
       guide: {
-        title: 'رہنمائی اور مدد',
+        title: 'طریقۂ کار',
         description: 'یہ حصہ اگلے مرحلے میں قدم بہ قدم رہنمائی کے لیے تیار ہے۔',
-        backButton: 'واپس خوش آمدید اسکرین پر',
+        backButton: 'واپس ہوم پر',
       },
     },
   },
@@ -455,9 +537,9 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     englishLabel: 'English',
     navAriaLabel: 'Primary navigation',
     nav: {
-      welcome: 'Welcome',
-      skills: 'Skills',
-      guide: 'Guide',
+      welcome: 'Home',
+      skills: 'Create',
+      guide: 'How it works',
     },
     skillInput: {
       heading: 'Tell Us About Your Skill',
@@ -625,7 +707,56 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       retryButton: 'Try Again',
     },
     aboutLimitations: {
-      heading: 'About & Limitations',
+      pageHeading: 'How it works',
+      pageSubtitle:
+        'How Hunar Saathi helps you turn your home skill into a practical small business:',
+      stepsHeading: 'How It Works in 4 Steps',
+      steps: [
+        {
+          title: '1. Share your skill, city, and work photos',
+          description:
+            'Pick your primary skill, enter your city, and upload 1 to 4 clear photos of items you have made.',
+        },
+        {
+          title: '2. Get product ideas & a WhatsApp intro',
+          description:
+            'Receive 3 tailored product suggestions, target customer insights, and a ready-to-share Urdu WhatsApp message.',
+        },
+        {
+          title: '3. Calculate fair prices from your costs',
+          description:
+            'Enter your material costs, work hours, hourly rate, and profit margin to calculate a transparent price for each item.',
+        },
+        {
+          title: '4. Follow your 7-day plan & save your shop',
+          description:
+            'Tick off simple daily actions in your First Week Plan and optionally publish a public shop page.',
+        },
+      ],
+      faqHeading: 'Frequently Asked Questions',
+      faqs: [
+        {
+          question: 'Is my contact shared publicly?',
+          answer:
+            'No. Your WhatsApp number stays hidden unless you explicitly check the consent box agreeing to share your contact details.',
+        },
+        {
+          question: 'Are prices accurate?',
+          answer:
+            "Prices are calculated directly from the user's own material costs, work hours, hourly rate, and chosen profit margin.",
+        },
+        {
+          question: 'Is it free?',
+          answer:
+            'Yes. Hunar Saathi is free to use for generating product suggestions, calculating prices, and saving your shop page.',
+        },
+        {
+          question: 'Can I hide or delete my shop later?',
+          answer:
+            'Yes. You can hide, unhide, or permanently delete your public shop page at any time from your device.',
+        },
+      ],
+      heading: 'AI & limitations',
       subtitle: 'Important information about how Hunar Saathi works:',
       items: [
         {
@@ -645,19 +776,27 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
           description: 'This is a prototype.',
         },
       ],
+      startCreatingButton: 'Start Creating',
       browseDirectoryButton: 'Browse Public Shops Directory',
-      backButton: 'Back to Welcome',
+      backButton: 'Back to Home',
+    },
+    createFlow: {
+      stepIndicator: (current: number, total: number) =>
+        `Step ${current} of ${total}`,
+      steps: ['Skill & Photos', 'Guide & Pricing', 'Plan & Shop'],
+      backToHomeButton: 'Back to Home',
+      backToStep1Button: 'Back to Step 1',
     },
     screens: {
       skills: {
-        title: 'Your Skills',
+        title: 'Create',
         description: 'This screen slot is ready for upcoming skill selection modules.',
-        backButton: 'Back to Welcome',
+        backButton: 'Back to Home',
       },
       guide: {
-        title: 'Step-by-Step Guide',
+        title: 'How it works',
         description: 'This screen slot is ready for upcoming earning guidance modules.',
-        backButton: 'Back to Welcome',
+        backButton: 'Back to Home',
       },
     },
   },

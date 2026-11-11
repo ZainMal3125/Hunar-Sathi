@@ -120,8 +120,12 @@ export default function App() {
     setIsAboutRoute(screen === 'guide');
     setActiveScreen(screen);
     if (typeof window !== 'undefined') {
-      const nextUrl = screen === 'guide' ? '/about' : `/#${screen}`;
-      window.history.pushState(null, '', nextUrl);
+      const hashMap: Record<ScreenId, string> = {
+        welcome: '/#home',
+        skills: '/#create',
+        guide: '/#how-it-works',
+      };
+      window.history.pushState(null, '', hashMap[screen]);
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
@@ -150,16 +154,20 @@ export default function App() {
     setPublicShopId(null);
     setIsDirectory(false);
     setIsAboutRoute(false);
-    if (typeof window !== 'undefined') {
-      const targetScreen = isSubmitted ? 'skills' : activeScreen;
-      window.history.pushState(null, '', `/#${targetScreen}`);
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+    const targetScreen = isSubmitted ? 'skills' : activeScreen;
+    handleNavigate(targetScreen);
   };
 
   const handleStart = () => {
     setIsSubmitted(false);
     handleNavigate(getNextScreenOnStart());
+  };
+
+  const handleBackToStep1 = () => {
+    setIsSubmitted(false);
+    setIsAnalyzing(false);
+    setAnalysisError(null);
+    handleNavigate('skills');
   };
 
   const runSkillAnalysis = useCallback(async (formToSubmit: SkillFormState) => {
@@ -227,44 +235,55 @@ export default function App() {
     handleNavigate('skills');
   };
 
+  const effectiveActiveTab: ScreenId | null =
+    publicShopId || isDirectory
+      ? null
+      : isAboutRoute
+      ? 'guide'
+      : activeScreen;
+
   return (
     <div
       lang={content.lang}
       dir={content.dir}
-      className={`${content.fontClass} flex min-h-dvh flex-col bg-[var(--color-canvas)] text-[var(--color-text)] selection:bg-[var(--color-primary)] selection:text-white`}
+      className={`${content.fontClass} min-h-dvh w-full bg-[var(--color-surface)]/45 text-[var(--color-text)] selection:bg-[var(--color-primary)] selection:text-white`}
     >
-      <TopBar
-        language={language}
-        content={content}
-        onLanguageChange={setLanguage}
-        onBrandClick={() => handleNavigate('welcome')}
-      />
+      <div
+        data-testid="app-container"
+        className="mx-auto flex min-h-dvh w-full max-w-[500px] flex-col border-x border-[var(--color-border)]/70 bg-[var(--color-canvas)] shadow-xs"
+      >
+        <TopBar
+          language={language}
+          content={content}
+          onLanguageChange={setLanguage}
+          onBrandClick={() => handleNavigate('welcome')}
+        />
 
-      <main className="flex flex-1 flex-col justify-center">
-        {publicShopId ? (
-          <PublicShopScreen
-            shopId={publicShopId}
-            content={content}
-            onBackToApp={handleBackFromPublicShop}
-            onOpenDirectory={handleOpenDirectory}
-            onShopUpdated={setSavedShop}
-          />
-        ) : isDirectory ? (
-          <ShopDirectoryScreen
-            content={content}
-            onSelectShop={handleOpenPublicShop}
-            onBackToApp={handleBackFromPublicShop}
-          />
-        ) : isAboutRoute || activeScreen === 'guide' ? (
-          <AboutLimitationsScreen
-            content={content}
-            onBackToWelcome={() => handleNavigate('welcome')}
-            onOpenDirectory={handleOpenDirectory}
-          />
-        ) : activeScreen === 'welcome' ? (
-          <WelcomeScreen content={content} onStart={handleStart} />
-        ) : (
-          isSubmitted ? (
+        <main className="flex flex-1 flex-col justify-center">
+          {publicShopId ? (
+            <PublicShopScreen
+              shopId={publicShopId}
+              content={content}
+              onBackToApp={handleBackFromPublicShop}
+              onOpenDirectory={handleOpenDirectory}
+              onShopUpdated={setSavedShop}
+            />
+          ) : isDirectory ? (
+            <ShopDirectoryScreen
+              content={content}
+              onSelectShop={handleOpenPublicShop}
+              onBackToApp={handleBackFromPublicShop}
+            />
+          ) : isAboutRoute || activeScreen === 'guide' ? (
+            <AboutLimitationsScreen
+              content={content}
+              onBackToWelcome={() => handleNavigate('welcome')}
+              onStartCreating={handleStart}
+              onOpenDirectory={handleOpenDirectory}
+            />
+          ) : activeScreen === 'welcome' ? (
+            <WelcomeScreen content={content} onStart={handleStart} />
+          ) : isSubmitted ? (
             <NextStepScreen
               content={content}
               formState={skillForm}
@@ -276,6 +295,8 @@ export default function App() {
               onOpenPublicShop={handleOpenPublicShop}
               onRetry={() => runSkillAnalysis(skillForm)}
               onStartOver={handleStartOver}
+              onBackToStep1={handleBackToStep1}
+              onBackToHome={() => handleNavigate('welcome')}
             />
           ) : (
             <SkillInputScreen
@@ -283,16 +304,18 @@ export default function App() {
               formState={skillForm}
               onChange={setSkillForm}
               onContinue={() => runSkillAnalysis(skillForm)}
+              onBackToHome={() => handleNavigate('welcome')}
             />
-          )
-        )}
-      </main>
+          )}
+        </main>
 
-      <BottomNav
-        activeScreen={activeScreen}
-        content={content}
-        onNavigate={handleNavigate}
-      />
+        <BottomNav
+          activeScreen={effectiveActiveTab}
+          content={content}
+          onNavigate={handleNavigate}
+        />
+      </div>
     </div>
   );
 }
+
