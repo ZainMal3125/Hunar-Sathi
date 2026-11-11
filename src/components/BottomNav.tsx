@@ -1,4 +1,4 @@
-import { Compass, Home, PlusCircle } from 'lucide-react';
+import { Home, PlusCircle, Store } from 'lucide-react';
 import { ScreenId, TranslationContent } from '../i18n/translations';
 import { ROUTES } from '../navigation/routes';
 
@@ -11,13 +11,13 @@ interface BottomNavProps {
 const ICONS: Record<ScreenId, typeof Home> = {
   welcome: Home,
   skills: PlusCircle,
-  guide: Compass,
+  guide: Store,
 };
 
 const TAB_IDS: Record<ScreenId, string> = {
   welcome: 'nav-tab-home',
   skills: 'nav-tab-create',
-  guide: 'nav-tab-how-it-works',
+  guide: 'nav-tab-public-shops',
 };
 
 export function BottomNav({

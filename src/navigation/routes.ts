@@ -8,7 +8,7 @@ export interface RouteDefinition {
 export const ROUTES: RouteDefinition[] = [
   { id: 'welcome', path: '#home' },
   { id: 'skills', path: '#create' },
-  { id: 'guide', path: '#how-it-works' },
+  { id: 'guide', path: '/directory' },
 ];
 
 export const DEFAULT_SCREEN: ScreenId = 'welcome';
@@ -23,6 +23,9 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
     return 'skills';
   }
   if (
+    cleanHash === 'directory' ||
+    cleanHash === 'public-shops' ||
+    cleanHash === 'shops' ||
     cleanHash === 'how-it-works' ||
     cleanHash === 'about' ||
     cleanHash === 'guide'
@@ -38,5 +41,6 @@ export function resolveInitialScreen(search: string, hash: string): ScreenId {
 export function getNextScreenOnStart(): ScreenId {
   return 'skills';
 }
+
 
 

@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Calculator,
-  Camera,
   Flower2,
   Languages,
   MessageCircle,
@@ -19,6 +18,7 @@ interface WelcomeScreenProps {
   content: TranslationContent;
   onStart: () => void;
   onSelectSkill: (skillId: SkillOptionId) => void;
+  onOpenDirectory: () => void;
 }
 
 const HOME_SKILLS: Array<{
@@ -31,7 +31,6 @@ const HOME_SKILLS: Array<{
   { id: 'cooking', Icon: UtensilsCrossed },
 ];
 
-const HOW_STRIP_ICONS = [Camera, Sparkles, Calculator, Store];
 const WHAT_YOU_GET_ICONS = [Sparkles, Calculator, MessageCircle, Store];
 const TRUST_ICONS = [Languages, Calculator, ShieldCheck];
 
@@ -39,6 +38,7 @@ export function WelcomeScreen({
   content,
   onStart,
   onSelectSkill,
+  onOpenDirectory,
 }: WelcomeScreenProps) {
   const isRtl = content.dir === 'rtl';
   const home = content.homePage;
@@ -201,37 +201,38 @@ export function WelcomeScreen({
         </div>
       </div>
 
-      {/* 3. "How it works" Strip (4 Compact Numbered Steps with Icons) */}
+      {/* 3. "Public shops" Card */}
       <div
-        data-testid="home-how-it-works-strip"
-        className="animate-fade-in flex flex-col gap-3 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-2xs"
+        data-testid="home-public-shops"
+        className="animate-fade-in flex flex-col gap-3.5 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-2xs"
       >
-        <h2 className="text-xl font-bold text-[var(--color-primary)]">
-          {home.howItWorksHeading}
-        </h2>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          {home.howItWorksSteps.map((stepLabel, idx) => {
-            const StepIcon = HOW_STRIP_ICONS[idx];
-            return (
-              <div
-                key={stepLabel}
-                data-testid={`home-how-step-${idx + 1}`}
-                className="flex items-center gap-2.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] p-3"
-              >
-                <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                  <StepIcon aria-hidden="true" className="h-4 w-4 stroke-[2]" />
-                  <span className="font-english absolute -top-1.5 -end-1.5 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-[var(--color-accent)] text-[11px] font-bold text-white tabular-nums">
-                    {idx + 1}
-                  </span>
-                </div>
-                <span className="text-sm font-bold text-[var(--color-text)]">
-                  {stepLabel}
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex items-start gap-3.5">
+          <span
+            aria-hidden="true"
+            className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-canvas)] text-[var(--color-accent)]"
+          >
+            <Store className="h-5 w-5 stroke-[2]" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <h2 className="text-xl font-bold text-[var(--color-primary)]">
+              {home.publicShopsHeading}
+            </h2>
+            <p className="text-sm font-medium text-[var(--color-text-muted)]">
+              {home.publicShopsSubtitle}
+            </p>
+          </div>
         </div>
+
+        <button
+          type="button"
+          id="home-open-public-shops-btn"
+          data-testid="home-open-public-shops-btn"
+          onClick={onOpenDirectory}
+          className="group flex min-h-[54px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[var(--color-primary)]/35 bg-[var(--color-canvas)] px-5 py-3 text-center text-base font-bold text-[var(--color-primary)] shadow-2xs transition-all duration-150 hover:bg-[var(--color-primary)] hover:text-white active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+        >
+          <Store aria-hidden="true" className="h-5 w-5 shrink-0" />
+          <span>{home.publicShopsButton}</span>
+        </button>
       </div>
 
       {/* 4. "What you get" Cards */}

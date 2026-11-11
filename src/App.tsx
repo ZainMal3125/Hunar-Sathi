@@ -97,9 +97,9 @@ export default function App() {
       setPublicShopId(shopIdFromUrl);
       setIsDirectory(!shopIdFromUrl && directoryFromUrl);
       setIsAboutRoute(!shopIdFromUrl && !directoryFromUrl && aboutFromUrl);
-      if (aboutFromUrl) {
+      if (directoryFromUrl) {
         setActiveScreen('guide');
-      } else if (!shopIdFromUrl && !directoryFromUrl) {
+      } else if (!shopIdFromUrl && !aboutFromUrl) {
         const next = resolveInitialScreen(
           window.location.search,
           window.location.hash
@@ -117,16 +117,16 @@ export default function App() {
 
   const handleNavigate = (screen: ScreenId) => {
     setPublicShopId(null);
-    setIsDirectory(false);
-    setIsAboutRoute(screen === 'guide');
+    setIsAboutRoute(false);
+    setIsDirectory(screen === 'guide');
     setActiveScreen(screen);
     if (typeof window !== 'undefined') {
-      const hashMap: Record<ScreenId, string> = {
+      const urlMap: Record<ScreenId, string> = {
         welcome: '/#home',
         skills: '/#create',
-        guide: '/#how-it-works',
+        guide: '/directory',
       };
-      window.history.pushState(null, '', hashMap[screen]);
+      window.history.pushState(null, '', urlMap[screen]);
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
   };
@@ -142,20 +142,14 @@ export default function App() {
   };
 
   const handleOpenDirectory = () => {
-    setPublicShopId(null);
-    setIsAboutRoute(false);
-    setIsDirectory(true);
-    if (typeof window !== 'undefined') {
-      window.history.pushState(null, '', '/directory');
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+    handleNavigate('guide');
   };
 
   const handleBackFromPublicShop = () => {
     setPublicShopId(null);
     setIsDirectory(false);
     setIsAboutRoute(false);
-    const targetScreen = isSubmitted ? 'skills' : activeScreen;
+    const targetScreen = isSubmitted ? 'skills' : 'welcome';
     handleNavigate(targetScreen);
   };
 
@@ -245,12 +239,13 @@ export default function App() {
     handleNavigate('skills');
   };
 
-  const effectiveActiveTab: ScreenId | null =
-    publicShopId || isDirectory
-      ? null
-      : isAboutRoute
-      ? 'guide'
-      : activeScreen;
+  const effectiveActiveTab: ScreenId | null = publicShopId
+    ? null
+    : isAboutRoute
+    ? null
+    : isDirectory
+    ? 'guide'
+    : activeScreen;
 
   return (
     <div
@@ -278,24 +273,25 @@ export default function App() {
               onOpenDirectory={handleOpenDirectory}
               onShopUpdated={setSavedShop}
             />
-          ) : isDirectory ? (
-            <ShopDirectoryScreen
-              content={content}
-              onSelectShop={handleOpenPublicShop}
-              onBackToApp={handleBackFromPublicShop}
-            />
-          ) : isAboutRoute || activeScreen === 'guide' ? (
+          ) : isAboutRoute ? (
             <AboutLimitationsScreen
               content={content}
               onBackToWelcome={() => handleNavigate('welcome')}
               onStartCreating={handleStart}
               onOpenDirectory={handleOpenDirectory}
             />
+          ) : isDirectory || activeScreen === 'guide' ? (
+            <ShopDirectoryScreen
+              content={content}
+              onSelectShop={handleOpenPublicShop}
+              onBackToApp={() => handleNavigate('welcome')}
+            />
           ) : activeScreen === 'welcome' ? (
             <WelcomeScreen
               content={content}
               onStart={handleStart}
               onSelectSkill={handleSelectSkillFromHome}
+              onOpenDirectory={handleOpenDirectory}
             />
           ) : isSubmitted ? (
             <NextStepScreen

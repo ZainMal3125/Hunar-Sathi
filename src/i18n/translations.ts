@@ -215,8 +215,9 @@ export interface NextStepTranslations {
 export interface HomePageTranslations {
   chooseSkillHeading: string;
   chooseSkillSubtitle: string;
-  howItWorksHeading: string;
-  howItWorksSteps: [string, string, string, string];
+  publicShopsHeading: string;
+  publicShopsSubtitle: string;
+  publicShopsButton: string;
   whatYouGetHeading: string;
   whatYouGetItems: [
     AboutLimitationItem,
@@ -284,18 +285,15 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     nav: {
       welcome: 'ہوم',
       skills: 'بنائیں',
-      guide: 'طریقۂ کار',
+      guide: 'عوامی دکانیں',
     },
     homePage: {
       chooseSkillHeading: 'اپنا ہنر منتخب کریں',
       chooseSkillSubtitle: 'کسی بھی ہنر پر ٹیپ کر کے فوراً آغاز کریں',
-      howItWorksHeading: 'یہ کیسے کام کرتا ہے',
-      howItWorksSteps: [
-        'ہنر اور تصاویر',
-        'مصنوعات کے آئیڈیاز',
-        'مناسب قیمت',
-        'واٹس ایپ اور دکان',
-      ],
+      publicShopsHeading: 'عوامی دکانیں',
+      publicShopsSubtitle:
+        'پاکستان بھر کی ہنرمند خواتین کی تیار کردہ مصنوعات اور دکانیں ہنر اور شہر کے لحاظ سے دیکھیں۔',
+      publicShopsButton: 'عوامی دکانیں دیکھیں',
       whatYouGetHeading: 'آپ کو کیا ملے گا',
       whatYouGetItems: [
         {
@@ -608,18 +606,15 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
     nav: {
       welcome: 'Home',
       skills: 'Create',
-      guide: 'How it works',
+      guide: 'Public shops',
     },
     homePage: {
       chooseSkillHeading: 'Choose your skill',
       chooseSkillSubtitle: 'Tap a skill to open Create with it selected',
-      howItWorksHeading: 'How it works',
-      howItWorksSteps: [
-        'Skill & photos',
-        'Product ideas',
-        'Fair pricing',
-        'WhatsApp & shop',
-      ],
+      publicShopsHeading: 'Public shops',
+      publicShopsSubtitle:
+        'Explore public shops and handmade products by women artisans across Pakistan.',
+      publicShopsButton: 'Browse Public Shops',
       whatYouGetHeading: 'What you get',
       whatYouGetItems: [
         {

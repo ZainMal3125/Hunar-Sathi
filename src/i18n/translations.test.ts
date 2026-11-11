@@ -53,12 +53,12 @@ test('navigation structure has Home, Create, and How it works tabs and transitio
   assert.deepEqual(en.nav, {
     welcome: 'Home',
     skills: 'Create',
-    guide: 'How it works',
+    guide: 'Public shops',
   });
   assert.deepEqual(ur.nav, {
     welcome: 'ہوم',
     skills: 'بنائیں',
-    guide: 'طریقۂ کار',
+    guide: 'عوامی دکانیں',
   });
 });
 
