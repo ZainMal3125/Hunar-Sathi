@@ -212,6 +212,28 @@ export interface NextStepTranslations {
   firstWeekPlan: FirstWeekPlanTranslations;
 }
 
+export interface HomePageTranslations {
+  chooseSkillHeading: string;
+  chooseSkillSubtitle: string;
+  howItWorksHeading: string;
+  howItWorksSteps: [string, string, string, string];
+  whatYouGetHeading: string;
+  whatYouGetItems: [
+    AboutLimitationItem,
+    AboutLimitationItem,
+    AboutLimitationItem,
+    AboutLimitationItem,
+  ];
+  trustHeading: string;
+  trustPoints: [string, string, string];
+  sdgFooterTitle: string;
+  sdgBadges: [
+    { number: string; title: string },
+    { number: string; title: string },
+    { number: string; title: string },
+  ];
+}
+
 export interface TranslationContent {
   lang: Language;
   dir: 'rtl' | 'ltr';
@@ -224,6 +246,7 @@ export interface TranslationContent {
   englishLabel: string;
   navAriaLabel: string;
   nav: Record<ScreenId, string>;
+  homePage: HomePageTranslations;
   skillInput: SkillInputTranslations;
   nextStep: NextStepTranslations;
   publicShop: PublicShopTranslations;
@@ -262,6 +285,52 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       welcome: 'ہوم',
       skills: 'بنائیں',
       guide: 'طریقۂ کار',
+    },
+    homePage: {
+      chooseSkillHeading: 'اپنا ہنر منتخب کریں',
+      chooseSkillSubtitle: 'کسی بھی ہنر پر ٹیپ کر کے فوراً آغاز کریں',
+      howItWorksHeading: 'یہ کیسے کام کرتا ہے',
+      howItWorksSteps: [
+        'ہنر اور تصاویر',
+        'مصنوعات کے آئیڈیاز',
+        'مناسب قیمت',
+        'واٹس ایپ اور دکان',
+      ],
+      whatYouGetHeading: 'آپ کو کیا ملے گا',
+      whatYouGetItems: [
+        {
+          title: 'تصاویر سے مصنوعات کے آئیڈیاز',
+          description:
+            'آپ کی اپ لوڈ کردہ تصاویر اور شہر کے مطابق 3 عملی مصنوعات کے مشورے۔',
+        },
+        {
+          title: 'منصفانہ قیمت کا کیلکولیٹر',
+          description:
+            'سامان، وقت اور محنت کے اخراجات سے ہر چیز کی مناسب قیمت نکالیں۔',
+        },
+        {
+          title: 'تیار واٹس ایپ پیغام',
+          description:
+            'اپنے جاننے والوں اور خریداروں کو بھیجنے کے لیے سادہ اردو تعارفی پیغام۔',
+        },
+        {
+          title: 'شیئر کرنے کے قابل آن لائن دکان',
+          description:
+            'اپنے نام، ہنر، شہر اور قیمتوں کے ساتھ ایک صاف ستھرا عوامی دکان کا صفحہ۔',
+        },
+      ],
+      trustHeading: 'قابلِ اعتماد اور محفوظ',
+      trustPoints: [
+        'اردو میں آسان رہنمائی (انگلش ٹوگل کے ساتھ)',
+        'قیمتیں آپ کے اپنے درج کردہ اخراجات سے نکالی جاتی ہیں',
+        'رابطہ نمبر صرف آپ کی رضامندی سے شیئر کیا جاتا ہے',
+      ],
+      sdgFooterTitle: 'اقوامِ متحدہ کے پائیدار ترقیاتی اہداف سے ہم آہنگ',
+      sdgBadges: [
+        { number: 'SDG 5', title: 'صنفی مساوات' },
+        { number: 'SDG 8', title: 'باعزت روزگار' },
+        { number: 'SDG 1', title: 'غربت کا خاتمہ' },
+      ],
     },
     skillInput: {
       heading: 'اپنے ہنر اور کام کی تفصیل بتائیں',
@@ -540,6 +609,52 @@ export const TRANSLATIONS: Record<Language, TranslationContent> = {
       welcome: 'Home',
       skills: 'Create',
       guide: 'How it works',
+    },
+    homePage: {
+      chooseSkillHeading: 'Choose your skill',
+      chooseSkillSubtitle: 'Tap a skill to open Create with it selected',
+      howItWorksHeading: 'How it works',
+      howItWorksSteps: [
+        'Skill & photos',
+        'Product ideas',
+        'Fair pricing',
+        'WhatsApp & shop',
+      ],
+      whatYouGetHeading: 'What you get',
+      whatYouGetItems: [
+        {
+          title: 'AI product ideas from your photos',
+          description:
+            'Three practical product suggestions tailored to your handmade work and city.',
+        },
+        {
+          title: 'Fair price calculator',
+          description:
+            'Calculate transparent prices from your material, time, and packaging costs.',
+        },
+        {
+          title: 'Ready WhatsApp message',
+          description:
+            'A warm, ready-to-copy Urdu announcement to share with your contacts.',
+        },
+        {
+          title: 'Shareable shop page',
+          description:
+            'A clean public shop page showcasing your work photos, skill, city, and prices.',
+        },
+      ],
+      trustHeading: 'Built for your trust',
+      trustPoints: [
+        'Urdu-first experience with instant English toggle',
+        'Prices calculated from your own costs',
+        'Contact shared only with your consent',
+      ],
+      sdgFooterTitle: 'Supporting UN Sustainable Development Goals',
+      sdgBadges: [
+        { number: 'SDG 5', title: 'Gender Equality' },
+        { number: 'SDG 8', title: 'Decent Work' },
+        { number: 'SDG 1', title: 'No Poverty' },
+      ],
     },
     skillInput: {
       heading: 'Tell Us About Your Skill',

@@ -17,6 +17,7 @@ import {
   getTranslation,
   Language,
   ScreenId,
+  SkillOptionId,
   TRANSLATIONS,
 } from './i18n/translations';
 import {
@@ -163,6 +164,15 @@ export default function App() {
     handleNavigate(getNextScreenOnStart());
   };
 
+  const handleSelectSkillFromHome = (skillId: SkillOptionId) => {
+    setSkillForm((prev) => ({
+      ...prev,
+      skillId,
+    }));
+    setIsSubmitted(false);
+    handleNavigate(getNextScreenOnStart());
+  };
+
   const handleBackToStep1 = () => {
     setIsSubmitted(false);
     setIsAnalyzing(false);
@@ -282,7 +292,11 @@ export default function App() {
               onOpenDirectory={handleOpenDirectory}
             />
           ) : activeScreen === 'welcome' ? (
-            <WelcomeScreen content={content} onStart={handleStart} />
+            <WelcomeScreen
+              content={content}
+              onStart={handleStart}
+              onSelectSkill={handleSelectSkillFromHome}
+            />
           ) : isSubmitted ? (
             <NextStepScreen
               content={content}
