@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "Shop": {
+      "title": "Shop",
+      "description": "Public shop profile created by a home-based woman artisan in Pakistan.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "Owner identifier or manage token for the creator of the shop.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "shopName": {
+          "type": "string",
+          "description": "Artisan or shop name displayed on the public shop page.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "skill": {
+          "type": "string",
+          "description": "Primary craft or skill.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "city": {
+          "type": "string",
+          "description": "City in Pakistan.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "agreeToShareContact": {
+          "type": "boolean",
+          "description": "Whether the user agreed to share her WhatsApp contact details publicly."
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "Optional WhatsApp phone number, stored only if agreeToShareContact is true.",
+          "maxLength": 30
+        },
+        "isHidden": {
+          "type": "boolean",
+          "description": "Whether the shop is hidden from public visitors."
+        },
+        "isSample": {
+          "type": "boolean",
+          "description": "Whether the shop is a seeded sample shop displaying a Sample data badge."
+        },
+        "products": {
+          "type": "array",
+          "description": "List of up to 3 suggested products with name, description, price, and compressed photos."
+        },
+        "photos": {
+          "type": "array",
+          "description": "Compressed data URLs of the artisan's work (1 to 4 photos)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the shop was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the shop was last updated."
+        }
+      },
+      "required": [
+        "ownerId",
+        "shopName",
+        "skill",
+        "city",
+        "agreeToShareContact",
+        "whatsappNumber",
+        "isHidden",
+        "products",
+        "photos",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/shops/{shopId}": {
+      "schema": {
+        "$ref": "#/entities/Shop"
+      },
+      "description": "Stores artisan shops accessible at /shop/:id."
+    }
+  }
+}

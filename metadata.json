@@ -1,0 +1,6 @@
+{
+  "name": "Hunar Saathi",
+  "description": "A mobile-first web application helping home-based women in Pakistan earn from their skills.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

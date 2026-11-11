@@ -1,0 +1,104 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidShop(data) {
+      return data.keys().hasAll([
+        'ownerId',
+        'shopName',
+        'skill',
+        'city',
+        'agreeToShareContact',
+        'whatsappNumber',
+        'isHidden',
+        'products',
+        'photos',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId',
+        'shopName',
+        'skill',
+        'city',
+        'agreeToShareContact',
+        'whatsappNumber',
+        'isHidden',
+        'isSample',
+        'products',
+        'photos',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 && data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.shopName is string && data.shopName.size() >= 1 && data.shopName.size() <= 120 &&
+      data.skill is string && data.skill.size() >= 1 && data.skill.size() <= 120 &&
+      data.city is string && data.city.size() >= 1 && data.city.size() <= 100 &&
+      data.agreeToShareContact is bool &&
+      data.whatsappNumber is string && data.whatsappNumber.size() <= 30 &&
+      ((data.agreeToShareContact == true && data.whatsappNumber.size() <= 30) ||
+       (data.agreeToShareContact == false && data.whatsappNumber == '')) &&
+      data.isHidden is bool &&
+      (!('isSample' in data) || data.isSample is bool) &&
+      data.products is list && data.products.size() >= 1 && data.products.size() <= 3 &&
+      data.products[0] is map &&
+      data.photos is list && data.photos.size() >= 1 && data.photos.size() <= 4 &&
+      data.photos[0] is string && data.photos[0].size() <= 250000 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    match /test/{docId} {
+      allow get: if docId == 'connection';
+    }
+
+    match /shops/{shopId} {
+      allow get: if isValidId(shopId);
+
+      allow list: if existing().isHidden == false;
+
+      allow create: if isValidId(shopId) &&
+        isValidShop(incoming()) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isValidId(shopId) &&
+        isValidShop(incoming()) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['isHidden', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'shopName',
+            'skill',
+            'city',
+            'agreeToShareContact',
+            'whatsappNumber',
+            'isHidden',
+            'isSample',
+            'products',
+            'photos',
+            'updatedAt'
+          ])
+        );
+
+      allow delete: if isValidId(shopId);
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-canvas: #FAF8F5;
+    --color-surface: #F2ECE4;
+    --color-border: #E4DCD1;
+    --color-text: #23191C;
+    --color-text-muted: #5C4B50;
+    --color-primary: #7A283B;
+    --color-primary-hover: #611E2E;
+    --color-accent: #D97706;
+    --color-accent-soft: #FEF3C7;
+    --font-urdu: 'Noto Nastaliq Urdu', serif;
+    --font-english: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.font-urdu,
+.font-urdu h1,
+.font-urdu h2,
+.font-urdu h3,
+.font-urdu p,
+.font-urdu span,
+.font-urdu label,
+.font-urdu legend,
+.font-urdu dt,
+.font-urdu dd,
+.font-urdu input,
+.font-urdu select,
+.font-urdu option,
+.font-urdu button,
+.font-english .font-urdu,
+.font-english [lang="ur"] {
+  font-family: var(--font-urdu);
+  line-height: 2.25;
+}
+
+.font-english,
+.font-english h1,
+.font-english h2,
+.font-english h3,
+.font-english p,
+.font-english span,
+.font-english label,
+.font-english legend,
+.font-english dt,
+.font-english dd,
+.font-english input,
+.font-english select,
+.font-english option,
+.font-english button,
+.font-urdu .font-english,
+.font-urdu [lang="en"] {
+  font-family: var(--font-english);
+  line-height: 1.6;
+}
+
